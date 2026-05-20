@@ -20,4 +20,5 @@ AI-powered log analysis system.
 
 ## Status
 
-Scaffold only — no application logic yet.
+- **Day 1–2:** Scaffold + API service (auth, ingestion, Redis queue). See [api/README.md](./api/README.md).
+- **Day 3+:** Worker, MCP, frontend — not started.

@@ -11,7 +11,11 @@ services:
       MONGO_URI: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/${MONGO_DATABASE}?authSource=admin
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       API_KEY_SALT: ${API_KEY_SALT}
+      REDIS_QUEUE_NAME: ${REDIS_QUEUE_NAME:-logsentinel:jobs}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     depends_on:
       - mongo
       - redis
@@ -26,6 +30,7 @@ services:
       NODE_ENV: development
       MONGO_URI: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/${MONGO_DATABASE}?authSource=admin
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      REDIS_QUEUE_NAME: ${REDIS_QUEUE_NAME:-logsentinel:jobs}
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       - mongo

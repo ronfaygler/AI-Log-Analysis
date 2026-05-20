@@ -58,11 +58,29 @@ mcp/  ──►  api/ (read-only tooling for AI clients)
 - **Users (dashboard):** JWT issued by API, stored in **HttpOnly, Secure cookies** (not localStorage).
 - **Log ingestion:** **API keys** per tenant/source, sent via header (e.g. `X-API-Key`).
 
+## Development plan
+
+| Day | Focus | Done? |
+|-----|-------|-------|
+| 1 | Scaffold + Docker Compose + git init | ✅ |
+| 2 | API service: JWT auth + log ingestion endpoint | ✅ |
+| 3 | Worker service: Redis consumer + Claude API + notifications | ⬜ |
+| 4 | MCP server: 3 tools connecting to live logs | ⬜ |
+| 5 | React dashboard + Redis cache + MongoDB indexes | ⬜ |
+| 6 | Tests (Jest + Supertest) + GitHub Actions CI | ⬜ |
+| 7 | AWS deploy + README polish + demo GIF | ⬜ |
+
+At the start of each session, set the active day's **Done?** to 🔄 when work begins. Mark ✅ when that day's scope is complete. Keep **Current status** in sync with the active day.
+
 ## Current status
 
 <!-- Updated each working session -->
 
-_Last updated: —_
+**Day 2 (complete):** `api/` — Express app with JWT auth (`logsentinel_token` HttpOnly cookie), API key CRUD (`/keys`), log ingest (`POST /logs/ingest` → MongoDB + Redis `LPUSH`), `GET /logs` for dashboard. See `api/README.md`.
+
+**Next:** Day 3 — Worker Redis consumer + Claude API.
+
+_Last updated: 2026-05-20_
 
 ## Do not
 
