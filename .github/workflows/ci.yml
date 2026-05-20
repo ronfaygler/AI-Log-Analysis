@@ -1,0 +1,16 @@
+# Placeholder CI — implement when services have build/test scripts
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  scaffold:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scaffold check
+        run: echo "CI pipeline not configured yet"
