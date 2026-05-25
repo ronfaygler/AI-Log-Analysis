@@ -24,6 +24,18 @@ _(To be filled as we build.)_
 - **Alternatives considered:** BullMQ, Redis Streams.
 - **Date:** 2026-05-20
 
+### Webhook notifications (optional)
+- **What:** Worker POSTs JSON to `NOTIFY_WEBHOOK_URL` on success/failure; always logs to stdout if unset.
+- **Why:** Simple integration point (Slack, PagerDuty, custom) without email/SMS complexity for MVP.
+- **Alternatives considered:** Email (SendGrid), Redis pub/sub only.
+- **Date:** 2026-05-20
+
+### Claude for log analysis
+- **What:** Worker calls Anthropic Messages API; expects JSON with summary, severity, recommendation.
+- **Why:** Day 3 scope; structured output stored on `LogEntry.analysis`.
+- **Alternatives considered:** OpenAI, rule-based-only analysis.
+- **Date:** 2026-05-20
+
 ## Problems & solutions
 
 _(No entries yet.)_

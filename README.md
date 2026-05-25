@@ -21,4 +21,5 @@ AI-powered log analysis system.
 ## Status
 
 - **Day 1–2:** Scaffold + API service (auth, ingestion, Redis queue). See [api/README.md](./api/README.md).
-- **Day 3+:** Worker, MCP, frontend — not started.
+- **Day 3:** Worker (Redis consumer, Claude, notifications). See [worker/README.md](./worker/README.md).
+- **Day 4+:** MCP, frontend — not started.

@@ -64,7 +64,7 @@ mcp/  ──►  api/ (read-only tooling for AI clients)
 |-----|-------|-------|
 | 1 | Scaffold + Docker Compose + git init | ✅ |
 | 2 | API service: JWT auth + log ingestion endpoint | ✅ |
-| 3 | Worker service: Redis consumer + Claude API + notifications | ⬜ |
+| 3 | Worker service: Redis consumer + Claude API + notifications | ✅ |
 | 4 | MCP server: 3 tools connecting to live logs | ⬜ |
 | 5 | React dashboard + Redis cache + MongoDB indexes | ⬜ |
 | 6 | Tests (Jest + Supertest) + GitHub Actions CI | ⬜ |
@@ -76,9 +76,9 @@ At the start of each session, set the active day's **Done?** to 🔄 when work b
 
 <!-- Updated each working session -->
 
-**Day 2 (complete):** `api/` — Express app with JWT auth (`logsentinel_token` HttpOnly cookie), API key CRUD (`/keys`), log ingest (`POST /logs/ingest` → MongoDB + Redis `LPUSH`), `GET /logs` for dashboard. See `api/README.md`.
+**Day 3 (complete):** `worker/` — `BRPOP` on `logsentinel:jobs`, Claude analysis → `LogEntry.analysis`, status lifecycle, optional `NOTIFY_WEBHOOK_URL`. See `worker/README.md`.
 
-**Next:** Day 3 — Worker Redis consumer + Claude API.
+**Next:** Day 4 — MCP server (3 tools).
 
 _Last updated: 2026-05-20_
 

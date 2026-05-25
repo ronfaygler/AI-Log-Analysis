@@ -31,7 +31,9 @@ services:
       MONGO_URI: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/${MONGO_DATABASE}?authSource=admin
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       REDIS_QUEUE_NAME: ${REDIS_QUEUE_NAME:-logsentinel:jobs}
-      JWT_SECRET: ${JWT_SECRET}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      NOTIFY_WEBHOOK_URL: ${NOTIFY_WEBHOOK_URL:-}
     depends_on:
       - mongo
       - redis
