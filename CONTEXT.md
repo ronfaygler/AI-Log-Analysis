@@ -76,11 +76,11 @@ At the start of each session, set the active day's **Done?** to 🔄 when work b
 
 <!-- Updated each working session -->
 
-**Day 3 (complete):** `worker/` — `BRPOP` on `logsentinel:jobs`, Claude analysis → `LogEntry.analysis`, status lifecycle, optional `NOTIFY_WEBHOOK_URL`. See `worker/README.md`.
+**Tests (early, not Day 6):** On branch `feat/tests` — Jest + Supertest for `api/` (17 tests) and `worker/` (7 tests, mocked Claude/Redis), GitHub Actions CI. Bugfix: `keys` auth per-route (was blocking `/logs/ingest`). Day 6 plan item stays open for any remaining test/CI work later.
 
 **Next:** Day 4 — MCP server (3 tools).
 
-_Last updated: 2026-05-20_
+_Last updated: 2026-05-25_
 
 ## Do not
 

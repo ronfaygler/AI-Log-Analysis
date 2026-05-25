@@ -5,9 +5,7 @@ const { generateApiKey, hashApiKey, keyPrefix } = require('../utils/apiKey');
 
 const router = express.Router();
 
-router.use(requireAuth);
-
-router.post('/keys', async (req, res, next) => {
+router.post('/keys', requireAuth, async (req, res, next) => {
   try {
     const { name } = req.body;
     if (!name || typeof name !== 'string') {
@@ -35,7 +33,7 @@ router.post('/keys', async (req, res, next) => {
   }
 });
 
-router.get('/keys', async (req, res, next) => {
+router.get('/keys', requireAuth, async (req, res, next) => {
   try {
     const keys = await ApiKey.find({ userId: req.user.id })
       .select('name keyPrefix lastUsedAt createdAt')

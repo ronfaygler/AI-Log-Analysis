@@ -28,6 +28,14 @@ npm run dev
 
 Or: `docker compose up --build api`
 
+## Tests
+
+```bash
+npm test
+```
+
+Uses `mongodb-memory-server` and mocks Redis. No `.env` required for tests.
+
 ## Endpoints
 
 | Method | Path | Auth | Description |
