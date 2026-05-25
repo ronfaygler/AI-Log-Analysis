@@ -25,6 +25,7 @@ No Docker or API keys required for unit tests (in-memory MongoDB; Redis and Clau
 ```bash
 cd api && npm install && npm test
 cd ../worker && npm install && npm test
+cd ../mcp && npm install && npm test
 ```
 
 CI runs the same via `.github/workflows/ci.yml` on push/PR to `main`.
@@ -33,5 +34,6 @@ CI runs the same via `.github/workflows/ci.yml` on push/PR to `main`.
 
 - **Day 1–2:** Scaffold + API service. See [api/README.md](./api/README.md).
 - **Day 3:** Worker (Redis consumer, Claude, notifications). See [worker/README.md](./worker/README.md).
-- **Tests:** API + worker unit tests + CI on `feat/tests` (added before Day 4; Day 6 plan not closed).
-- **Next:** Day 4 — MCP; Day 5 — frontend.
+- **Day 4:** MCP server (3 tools, live API). See [mcp/README.md](./mcp/README.md).
+- **Tests:** API + worker unit tests + CI (added before Day 4; Day 6 plan not closed).
+- **Next:** Day 5 — frontend.

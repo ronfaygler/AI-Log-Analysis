@@ -65,7 +65,7 @@ mcp/  ──►  api/ (read-only tooling for AI clients)
 | 1 | Scaffold + Docker Compose + git init | ✅ |
 | 2 | API service: JWT auth + log ingestion endpoint | ✅ |
 | 3 | Worker service: Redis consumer + Claude API + notifications | ✅ |
-| 4 | MCP server: 3 tools connecting to live logs | ⬜ |
+| 4 | MCP server: 3 tools connecting to live logs | ✅ |
 | 5 | React dashboard + Redis cache + MongoDB indexes | ⬜ |
 | 6 | Tests (Jest + Supertest) + GitHub Actions CI | ⬜ |
 | 7 | AWS deploy + README polish + demo GIF | ⬜ |
@@ -76,9 +76,11 @@ At the start of each session, set the active day's **Done?** to 🔄 when work b
 
 <!-- Updated each working session -->
 
-**Tests (early, not Day 6):** On branch `feat/tests` — Jest + Supertest for `api/` (17 tests) and `worker/` (7 tests, mocked Claude/Redis), GitHub Actions CI. Bugfix: `keys` auth per-route (was blocking `/logs/ingest`). Day 6 plan item stays open for any remaining test/CI work later.
+**Day 4 (complete):** `mcp/` — MCP server with `list_logs`, `get_log`, `search_logs` (Streamable HTTP + stdio). API extended with Bearer auth, `GET /logs/:id`, and log filters. See `mcp/README.md`.
 
-**Next:** Day 4 — MCP server (3 tools).
+**Tests (early, not Day 6):** Jest for `api/` (20), `worker/` (7), and `mcp/` (15) — **42 total**; mocked fetch/Claude/Redis, in-memory MCP transport. GitHub Actions CI runs all three. Day 6 stays open for frontend tests and any remaining coverage.
+
+**Next:** Day 5 — React dashboard + Redis cache + MongoDB indexes.
 
 _Last updated: 2026-05-25_
 
