@@ -10,7 +10,7 @@ Consumes log analysis jobs from Redis (`BRPOP`), calls Claude, updates MongoDB, 
 | `REDIS_URL` | yes | Same Redis as API |
 | `REDIS_QUEUE_NAME` | no | Default `logsentinel:jobs` |
 | `ANTHROPIC_API_KEY` | yes | Claude API key |
-| `ANTHROPIC_MODEL` | no | Default `claude-sonnet-4-20250514` |
+| `ANTHROPIC_MODEL` | no | Default `claude-sonnet-4-20250514`; use Haiku in dev (see `.env.example`) |
 | `NOTIFY_WEBHOOK_URL` | no | POST JSON on analyze success/failure |
 
 ## Run
@@ -28,6 +28,14 @@ npm install
 # set env vars from repo root .env
 npm run dev
 ```
+
+## Tests
+
+```bash
+npm test
+```
+
+Mocks Claude (`analyzeLog`), Redis (`popJob`), and optional webhook `fetch`. Tests `processJob`, `consumeOnce`, and `sendNotification`.
 
 ## Flow
 

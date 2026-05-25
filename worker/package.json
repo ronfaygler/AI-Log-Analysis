@@ -4,11 +4,16 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "node --watch src/index.js"
+    "dev": "node --watch src/index.js",
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "ioredis": "^5.6.1",
     "mongoose": "^8.9.5"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.4"
   }
 }

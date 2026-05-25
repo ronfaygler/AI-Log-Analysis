@@ -32,10 +32,26 @@ _(To be filled as we build.)_
 
 ### Claude for log analysis
 - **What:** Worker calls Anthropic Messages API; expects JSON with summary, severity, recommendation.
-- **Why:** Day 3 scope; structured output stored on `LogEntry.analysis`.
+- **Why:** LLM fits messy log text; Anthropic Messages API + JSON map to `LogEntry.analysis`. Default **Haiku** via `ANTHROPIC_MODEL` for cheaper dev.
 - **Alternatives considered:** OpenAI, rule-based-only analysis.
 - **Date:** 2026-05-20
 
+### Jest + mongodb-memory-server for API tests
+- **What:** API tests use Supertest against `createApp()`, in-memory MongoDB, mocked Redis `publishJob`.
+- **Why:** Fast CI, no Docker; covers auth, keys, ingest, logs without real infra.
+- **Alternatives considered:** Testcontainers, hitting docker-compose in CI only.
+- **Date:** 2026-05-25
+
+### Mock Claude in worker tests
+- **What:** `jest.mock` on `analyzeLog`; `processJob` and `consumeOnce` tested without `ANTHROPIC_API_KEY`.
+- **Why:** Deterministic, free CI; real Claude reserved for manual/E2E.
+- **Alternatives considered:** VCR fixtures, optional integration test job.
+- **Date:** 2026-05-25
+
 ## Problems & solutions
 
-_(No entries yet.)_
+### `router.use(requireAuth)` blocked log ingest
+- **Problem:** `POST /logs/ingest` returned 401 `"Authentication required"` — JWT middleware on the keys router ran for every request through that mount.
+- **Solution:** Apply `requireAuth` per route on `POST/GET /keys` only, not `router.use(requireAuth)`.
+- **Lesson:** Express `router.use(mw)` applies to all requests entering that router; order of `app.use()` matters.
+- **Date:** 2026-05-25
