@@ -48,7 +48,8 @@ Uses `mongodb-memory-server` and mocks Redis. No `.env` required for tests.
 | POST | `/keys` | Cookie | `{ name }` — create ingestion API key (shown once) |
 | GET | `/keys` | Cookie | List API keys (prefix only) |
 | POST | `/logs/ingest` | `X-API-Key` | `{ level, message, source?, metadata?, timestamp? }` |
-| GET | `/logs` | Cookie | List recent logs for user |
+| GET | `/logs` | Cookie or Bearer | List recent logs (`limit`, `level`, `status`, `source`, `q`) |
+| GET | `/logs/:id` | Cookie or Bearer | Get one log entry by ID |
 
 ### Log ingest example
 

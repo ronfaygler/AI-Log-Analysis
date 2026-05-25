@@ -3,7 +3,8 @@ const jwt = require('jsonwebtoken');
 const COOKIE_NAME = 'logsentinel_token';
 
 function requireAuth(req, res, next) {
-  const token = req.cookies?.[COOKIE_NAME];
+  const bearer = req.headers.authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
+  const token = bearer || req.cookies?.[COOKIE_NAME];
   if (!token) {
     return res.status(401).json({ error: 'Authentication required' });
   }

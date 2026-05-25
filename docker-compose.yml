@@ -50,7 +50,10 @@ services:
       NODE_ENV: development
       PORT: 4001
       API_URL: http://api:4000
-      JWT_SECRET: ${JWT_SECRET}
+      MCP_EMAIL: ${MCP_EMAIL}
+      MCP_PASSWORD: ${MCP_PASSWORD}
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-}
+      MCP_TRANSPORT: http
     depends_on:
       - api
     networks:

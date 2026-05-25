@@ -62,12 +62,46 @@ router.post('/logs/ingest', requireApiKey, async (req, res, next) => {
 router.get('/logs', requireAuth, async (req, res, next) => {
   try {
     const limit = Math.min(Number(req.query.limit) || 50, 100);
-    const logs = await LogEntry.find({ userId: req.user.id })
+    const filter = { userId: req.user.id };
+
+    if (req.query.level) {
+      if (!LEVELS.has(req.query.level)) {
+        return res.status(400).json({ error: 'level must be one of: debug, info, warn, error, fatal' });
+      }
+      filter.level = req.query.level;
+    }
+    if (req.query.status) {
+      const statuses = new Set(['queued', 'processing', 'done', 'failed']);
+      if (!statuses.has(req.query.status)) {
+        return res.status(400).json({ error: 'status must be one of: queued, processing, done, failed' });
+      }
+      filter.status = req.query.status;
+    }
+    if (req.query.source) {
+      filter.source = req.query.source;
+    }
+    if (req.query.q) {
+      filter.message = { $regex: req.query.q, $options: 'i' };
+    }
+
+    const logs = await LogEntry.find(filter)
       .sort({ loggedAt: -1 })
       .limit(limit)
       .select('-__v');
 
     res.json({ logs });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/logs/:id', requireAuth, async (req, res, next) => {
+  try {
+    const log = await LogEntry.findOne({ _id: req.params.id, userId: req.user.id }).select('-__v');
+    if (!log) {
+      return res.status(404).json({ error: 'Log not found' });
+    }
+    res.json({ log });
   } catch (err) {
     next(err);
   }
