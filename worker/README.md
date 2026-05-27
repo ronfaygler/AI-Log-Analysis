@@ -1,6 +1,6 @@
 # LogSentinel Worker
 
-Consumes log analysis jobs from Redis (`BRPOP`), calls Claude, updates MongoDB, and sends notifications.
+Consumes log analysis jobs from Redis (`BRPOP`), batches them, calls Claude once per batch, updates MongoDB, and sends notifications.
 
 ## Environment
 
@@ -12,6 +12,8 @@ Consumes log analysis jobs from Redis (`BRPOP`), calls Claude, updates MongoDB, 
 | `ANTHROPIC_API_KEY` | yes | Claude API key |
 | `ANTHROPIC_MODEL` | no | Default `claude-sonnet-4-20250514`; use Haiku in dev (see `.env.example`) |
 | `NOTIFY_WEBHOOK_URL` | no | POST JSON on analyze success/failure |
+| `BATCH_MAX_LOGS` | no | Flush batch at this count (default `25`) |
+| `BATCH_WINDOW_MS` | no | Flush if oldest job exceeds this age in ms (default `10000`) |
 
 ## Run
 
@@ -35,14 +37,14 @@ npm run dev
 npm test
 ```
 
-Mocks Claude (`analyzeLog`), Redis (`popJob`), and optional webhook `fetch`. Tests `processJob`, `consumeOnce`, and `sendNotification`.
+Mocks Claude (`analyzeLogBatch`), Redis (`popJob`), and optional webhook `fetch`. Tests `processBatch`, `batchBuffer`, `consumeOnce`, and `sendNotification`.
 
 ## Flow
 
-1. API `LPUSH`es job to Redis after `POST /logs/ingest`
-2. Worker `BRPOP`es job (blocks until available)
-3. Sets log `status: processing` → Claude analysis → `status: done` + `analysis` object
-4. Optional webhook notification; always logs to stdout
+1. API `LPUSH`es one job per log after `POST /logs/ingest`
+2. Worker `BRPOP`es jobs (1s timeout) into an in-memory buffer
+3. When buffer reaches `BATCH_MAX_LOGS` or `BATCH_WINDOW_MS`, one Claude call analyzes all logs in the batch
+4. Each `LogEntry` gets `status: done` and `analysis`; optional webhook per log
 
 ## Job payload (from API)
 
@@ -58,3 +60,7 @@ Mocks Claude (`analyzeLog`), Redis (`popJob`), and optional webhook `fetch`. Tes
   "loggedAt": "ISO-8601"
 }
 ```
+
+## Batch analysis
+
+100 similar logs (e.g. failed logins) become ~4 Claude calls instead of 100. The model sees all lines in one prompt and can detect patterns (brute force, outage, regression).

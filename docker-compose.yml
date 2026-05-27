@@ -34,28 +34,11 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
       NOTIFY_WEBHOOK_URL: ${NOTIFY_WEBHOOK_URL:-}
+      BATCH_MAX_LOGS: ${BATCH_MAX_LOGS:-25}
+      BATCH_WINDOW_MS: ${BATCH_WINDOW_MS:-10000}
     depends_on:
       - mongo
       - redis
-    networks:
-      - logsentinel
-
-  mcp:
-    build:
-      context: ./mcp
-      dockerfile: Dockerfile
-    ports:
-      - "${MCP_PORT:-4001}:4001"
-    environment:
-      NODE_ENV: development
-      PORT: 4001
-      API_URL: http://api:4000
-      MCP_EMAIL: ${MCP_EMAIL}
-      MCP_PASSWORD: ${MCP_PASSWORD}
-      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-}
-      MCP_TRANSPORT: http
-    depends_on:
-      - api
     networks:
       - logsentinel
 

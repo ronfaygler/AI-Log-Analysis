@@ -48,6 +48,18 @@ _(To be filled as we build.)_
 - **Alternatives considered:** VCR fixtures, optional integration test job.
 - **Date:** 2026-05-25
 
+### Removed MCP service
+- **What:** Deleted `mcp/`; insights surfaced via API + dashboard only.
+- **Why:** MCP duplicated read-only API access; not core to ingest/analyze loop; added deploy complexity.
+- **Alternatives considered:** Keep MCP for Cursor integration.
+- **Date:** 2026-05-25
+
+### Worker batch buffer for Claude
+- **What:** Worker accumulates Redis jobs until `BATCH_MAX_LOGS` or `BATCH_WINDOW_MS`, then one `analyzeLogBatch` call; results applied to each `LogEntry`.
+- **Why:** Per-log Claude calls are expensive and miss cross-log patterns (e.g. 100 failed logins).
+- **Alternatives considered:** Per-log analysis, incident collection model, rule-based dedupe.
+- **Date:** 2026-05-25
+
 ## Problems & solutions
 
 ### `router.use(requireAuth)` blocked log ingest

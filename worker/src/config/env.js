@@ -14,6 +14,8 @@ function loadEnv() {
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
     notifyWebhookUrl: process.env.NOTIFY_WEBHOOK_URL || '',
+    batchMaxLogs: Number(process.env.BATCH_MAX_LOGS) || 25,
+    batchWindowMs: Number(process.env.BATCH_WINDOW_MS) || 10000,
   };
 }
 
