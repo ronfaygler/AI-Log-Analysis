@@ -48,7 +48,7 @@ Uses `mongodb-memory-server` and mocks Redis. No `.env` required for tests.
 | POST | `/keys` | Cookie | `{ name }` — create ingestion API key (shown once) |
 | GET | `/keys` | Cookie | List API keys (prefix only) |
 | POST | `/logs/ingest` | `X-API-Key` | `{ level, message, source?, metadata?, timestamp? }` |
-| GET | `/logs` | Cookie or Bearer | List logs (`limit`, `level`, `status`, `source`, `q`, `issues`, `severity`, `sort`, `fresh`) — Redis-cached unless `fresh=1` |
+| GET | `/logs` | Cookie or Bearer | Paginated list of logs (`page`, `limit` [max 50], `level`, `status`, `source`, `q`, `issues`, `severity`, `sort`, `fresh`) — Redis-cached unless `fresh=1`. Response: `{ logs, limit, page, total, totalPages }`; `total` is capped at 500 matching logs regardless of how many actually exist |
 | GET | `/logs/stream` | Cookie or Bearer | SSE stream of `log.updated` / `log.deleted` for the current user |
 | GET | `/logs/:id` | Cookie or Bearer | Get one log entry by ID — Redis-cached |
 | DELETE | `/logs/:id` | Cookie or Bearer | Delete a log (invalidates cache, publishes `log.deleted`) |

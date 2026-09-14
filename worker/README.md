@@ -10,7 +10,7 @@ Consumes log analysis jobs from Redis (`BRPOP`), batches them, calls Claude once
 | `REDIS_URL` | yes | Same Redis as API |
 | `REDIS_QUEUE_NAME` | no | Default `logsentinel:jobs` |
 | `ANTHROPIC_API_KEY` | yes | Claude API key |
-| `ANTHROPIC_MODEL` | no | Default `claude-sonnet-4-20250514`; use Haiku in dev (see `.env.example`) |
+| `ANTHROPIC_MODEL` | no | Default `claude-haiku-4-5` (see `.env.example`) |
 | `NOTIFY_WEBHOOK_URL` | no | POST JSON on analyze success/failure |
 | `BATCH_MAX_LOGS` | no | Flush batch at this count (default `25`) |
 | `BATCH_WINDOW_MS` | no | Flush if oldest job exceeds this age in ms (default `10000`) |
@@ -64,3 +64,5 @@ Mocks Claude (`analyzeLogBatch`), Redis (`popJob`), and optional webhook `fetch`
 ## Batch analysis
 
 100 similar logs (e.g. failed logins) become ~4 Claude calls instead of 100. The model sees all lines in one prompt and can detect patterns (brute force, outage, regression).
+
+`max_tokens` for the batch response scales with batch size (`300 + batchSize * 120`, capped at 4096) so larger batches don't get their JSON response truncated mid-array.
