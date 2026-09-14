@@ -26,6 +26,6 @@ Or from repo root: `docker compose up --build frontend api mongo redis`
 | Path | Description |
 |------|-------------|
 | `/login`, `/register` | Session auth (HttpOnly cookie) |
-| `/logs` | Issues-first log list (live SSE updates, severity filter/sort, delete) |
+| `/logs` | Issues-first log list (live SSE updates, severity filter/sort, pagination — 50/page, 500 max, delete) |
 | `/logs/:id` | Full message, metadata, AI analysis, delete |
 | `/keys` | Create and list ingestion API keys |

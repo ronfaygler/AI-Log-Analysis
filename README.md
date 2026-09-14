@@ -36,7 +36,7 @@ See [CONTEXT.md](./CONTEXT.md) for product vision, example logs, and dashboard p
 Local dev/demo utilities in [`tools/`](./tools) — not part of the deployed stack, run against a running API:
 
 - `node tools/log-shipper.js --key <apiKey> -- node myapp.js` — wraps any command, streams its output to your terminal unchanged, and ships each line to the API live.
-- `node tools/demo-log-generator.js --key <apiKey>` — generates realistic synthetic traffic (routine noise + occasional incident bursts) to populate the dashboard for demos, local or deployed.
+- `node tools/demo-log-generator.js --key <apiKey>` — generates realistic synthetic traffic (a configurable mix of routine noise and warn/error/fatal "issues") to populate the dashboard for demos, local or deployed.
 
 See [tools/README.md](./tools/README.md) for full usage.
 
@@ -49,7 +49,7 @@ cd api && npm install && npm test
 cd ../worker && npm install && npm test
 ```
 
-CI runs the same via `.github/workflows/ci.yml` on push/PR to `main`.
+CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs `api` + `worker` tests, builds the `frontend`, and syntax-checks the `tools/` scripts.
 
 ## Status
 
