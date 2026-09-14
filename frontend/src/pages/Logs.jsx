@@ -134,6 +134,30 @@ export function Logs() {
       ? `Page ${page} of ${totalPages} — ${total} issue${total === 1 ? '' : 's'} total (max 500)`
       : `Page ${page} of ${totalPages} — ${total} log${total === 1 ? '' : 's'} total (max 500)`;
 
+  const pagination = (
+    <div className="pagination">
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        onClick={() => setPage((p) => Math.max(1, p - 1))}
+        disabled={page <= 1}
+      >
+        Previous
+      </button>
+      <span className="muted">
+        Page {page} / {totalPages}
+      </span>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+        disabled={page >= totalPages}
+      >
+        Next
+      </button>
+    </div>
+  );
+
   return (
     <div className="logs-page">
       <div className="page-header">
@@ -228,6 +252,10 @@ export function Logs() {
 
       {!loading && logs.length > 0 && (
         <>
+          <div className="pagination-bar pagination-bar--top">
+            <p className="logs-footer muted">{footerLabel}</p>
+            {pagination}
+          </div>
           <div className="table-wrap">
             <table className="logs-table">
               <thead>
@@ -275,27 +303,9 @@ export function Logs() {
               </tbody>
             </table>
           </div>
-          <p className="logs-footer muted">{footerLabel}</p>
-          <div className="pagination">
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-            >
-              Previous
-            </button>
-            <span className="muted">
-              Page {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-            >
-              Next
-            </button>
+          <div className="pagination-bar pagination-bar--bottom">
+            <p className="logs-footer muted">{footerLabel}</p>
+            {pagination}
           </div>
         </>
       )}
