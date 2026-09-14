@@ -125,7 +125,7 @@ function emitFromScenario(baseUrl, apiKey, source, burst) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const usage =
-    'Usage: node tools/demo-log-generator.js --key <apiKey> [--url http://localhost:4000] [--source demo-generator] [--interval-ms 1500] [--burst-chance 0.03]';
+    'Usage: node tools/demo-log-generator.js --key <apiKey> [--url http://localhost:4000] [--source demo-generator] [--interval-ms 1500] [--burst-chance 0.03] [--max-logs n]';
 
   if (!args.key || typeof args.key !== 'string') {
     console.error(usage);
@@ -136,23 +136,33 @@ function main() {
   const source = typeof args.source === 'string' ? args.source : 'demo-generator';
   const intervalMs = Number(args['interval-ms']) || 1500;
   const burstChance = args['burst-chance'] !== undefined ? Number(args['burst-chance']) : 0.03;
+  const maxLogs = args['max-logs'] !== undefined ? Number(args['max-logs']) : Infinity;
 
   let burst = null;
   let stopped = false;
+  let shipped = 0;
 
   function tick() {
     if (stopped) return;
+
+    if (shipped >= maxLogs) {
+      stopped = true;
+      console.error(`[demo-log-generator] reached --max-logs limit (${maxLogs}); stopping.`);
+      return;
+    }
 
     if (burst) {
       emitFromScenario(baseUrl, args.key, source, burst);
       burst.remaining--;
       if (burst.remaining <= 0) burst = null;
+      shipped++;
     } else if (Math.random() < burstChance) {
       const key = pick(Object.keys(SCENARIOS));
       const scenario = SCENARIOS[key];
       burst = { scenario, remaining: scenario.burstLen(), ctx: { ip: fakeIp() } };
     } else {
       emitRoutine(baseUrl, args.key, source);
+      shipped++;
     }
 
     const jitter = 0.6 + Math.random() * 0.8;
@@ -162,11 +172,13 @@ function main() {
   console.error(`[demo-log-generator] shipping to ${baseUrl}/logs/ingest every ~${intervalMs}ms (Ctrl+C to stop)`);
   tick();
 
-  process.on('SIGINT', () => {
+  const shutdown = () => {
     stopped = true;
     console.error('\n[demo-log-generator] stopping...');
     process.exit(0);
-  });
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
 
 main();

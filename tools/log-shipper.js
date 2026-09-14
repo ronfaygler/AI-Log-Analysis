@@ -58,7 +58,7 @@ async function postLog(baseUrl, apiKey, entry) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const usage =
-    'Usage: node tools/log-shipper.js --key <apiKey> [--url http://localhost:4000] [--source name] -- <command> [args...]';
+    'Usage: node tools/log-shipper.js --key <apiKey> [--url http://localhost:4000] [--source name] [--max-logs n] -- <command> [args...]';
 
   if (!args.key || typeof args.key !== 'string') {
     console.error(usage);
@@ -72,10 +72,13 @@ function main() {
 
   const baseUrl = (typeof args.url === 'string' && args.url) || 'http://localhost:4000';
   const source = typeof args.source === 'string' ? args.source : undefined;
+  const maxLogs = args['max-logs'] !== undefined ? Number(args['max-logs']) : Infinity;
   const [cmd, ...cmdArgs] = args._;
 
   const child = spawn(cmd, cmdArgs, { shell: false });
   const pending = new Set();
+  let shipped = 0;
+  let limitNotified = false;
 
   child.on('error', (err) => {
     console.error(`[log-shipper] failed to start "${cmd}": ${err.message}`);
@@ -86,6 +89,18 @@ function main() {
     const rl = readline.createInterface({ input: stream });
     rl.on('line', (line) => {
       out.write(line + '\n');
+
+      if (shipped >= maxLogs) {
+        if (!limitNotified) {
+          limitNotified = true;
+          process.stderr.write(
+            `[log-shipper] reached --max-logs limit (${maxLogs}); no longer shipping (app keeps running)\n`
+          );
+        }
+        return;
+      }
+      shipped++;
+
       const p = postLog(baseUrl, args.key, {
         level: inferLevel(line, isStderr),
         message: line,
