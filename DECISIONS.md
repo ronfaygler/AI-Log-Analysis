@@ -80,6 +80,12 @@ _(To be filled as we build.)_
 
 ## Problems & solutions
 
+### Auth cookie hardcoded `SameSite=Lax` breaks cross-domain production auth
+- **Problem:** `setAuthCookie` always set `sameSite: 'lax'`. That's fine locally (frontend and API share `localhost`), but production splits them across domains (Vercel frontend, Fly.io API) — browsers don't send `Lax` cookies on cross-site `fetch`/XHR, so every authenticated request after login would silently come back as logged-out.
+- **Solution:** `sameSite` now follows `config.cookieSecure` (`'none'` when true, `'lax'` when false); `SameSite=None` requires `Secure`, which `cookieSecure` already controls. `logout`'s `clearCookie` now uses the same attributes — mismatched attributes mean the browser won't recognize it as the same cookie to delete.
+- **Lesson:** A cookie config that works in local same-origin dev can silently break the moment frontend and backend split across domains — worth checking `SameSite`/`Secure` explicitly before any cross-domain deploy, not just from `COOKIE_SECURE` being "on".
+- **Date:** 2026-09-14
+
 ### Claude `max_tokens` truncated batch JSON for larger batches
 - **Problem:** `analyzeLogBatch` hardcoded `max_tokens: 1024`. Batches of ~20+ logs need a JSON array with one summary object per log, which exceeded that budget — Claude's response got cut off mid-array, and `JSON.parse` failed with `Expected ',' or ']' after array element...` on every large batch, marking all those logs `status: failed`.
 - **Solution:** Scale `max_tokens` with batch size: `Math.min(4096, 300 + capped.length * 120)`.

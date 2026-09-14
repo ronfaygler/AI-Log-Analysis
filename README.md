@@ -31,6 +31,10 @@ See [CONTEXT.md](./CONTEXT.md) for product vision, example logs, and dashboard p
 3. See [CONTEXT.md](./CONTEXT.md) for architecture and session context.
 4. See [DECISIONS.md](./DECISIONS.md) for architecture decisions and problem log.
 
+## Deployment
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) — frontend on Vercel, `api`/`worker` on Fly.io, MongoDB Atlas, Upstash Redis.
+
 ## Tools
 
 Local dev/demo utilities in [`tools/`](./tools) — not part of the deployed stack, run against a running API:
