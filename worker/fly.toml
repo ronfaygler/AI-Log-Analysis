@@ -1,0 +1,15 @@
+app = "logsentinel-worker"
+primary_region = "iad"
+
+[build]
+
+[env]
+  NODE_ENV = "production"
+
+[processes]
+  worker = "npm start"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  processes = ["worker"]

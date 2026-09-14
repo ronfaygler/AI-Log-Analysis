@@ -16,7 +16,7 @@ function setAuthCookie(res, user, config) {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
     secure: config.cookieSecure,
-    sameSite: 'lax',
+    sameSite: config.cookieSecure ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
@@ -57,8 +57,13 @@ router.post('/auth/login', async (req, res, next) => {
   }
 });
 
-router.post('/auth/logout', (_req, res) => {
-  res.clearCookie(COOKIE_NAME, { httpOnly: true, sameSite: 'lax' });
+router.post('/auth/logout', (req, res) => {
+  const config = req.app.locals.config;
+  res.clearCookie(COOKIE_NAME, {
+    httpOnly: true,
+    secure: config.cookieSecure,
+    sameSite: config.cookieSecure ? 'none' : 'lax',
+  });
   res.json({ ok: true });
 });
 
