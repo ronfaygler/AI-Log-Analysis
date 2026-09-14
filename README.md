@@ -18,7 +18,7 @@ dashboard ──JWT──► api
 
 | Directory | Description |
 |-----------|-------------|
-| `api/` | REST API, auth, log ingestion, `GET /logs` |
+| `api/` | REST API, auth, log ingestion, paginated `GET /logs` |
 | `worker/` | Redis consumer, batched Claude analysis, webhooks |
 | `frontend/` | React dashboard (Day 5) |
 
@@ -58,4 +58,5 @@ CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs `api` + `worker` test
 - **Day 4:** Batch AI analysis; MCP removed; API log read endpoints. See [worker/README.md](./worker/README.md).
 - **Tests:** API + worker unit tests + CI (Day 6 plan not closed).
 - **Day 5:** React dashboard. See [frontend/README.md](./frontend/README.md).
-- **Next:** Day 6 — tests + CI polish.
+- **Day 5 follow-ups:** `tools/` (log-shipper, demo-log-generator), `GET /logs` pagination, worker `max_tokens` fix, CI now builds the frontend and checks `tools/`. See [CONTEXT.md](./CONTEXT.md) for details.
+- **Next:** Day 6 — frontend still has no test suite; Day 7 — finish deciding/standing up hosting (frontend on Vercel; api/worker/db TBD).
