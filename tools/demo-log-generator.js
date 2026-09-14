@@ -69,16 +69,13 @@ const ROUTINE = [
 ];
 const ROUTINE_TABLE = ROUTINE.flatMap((r) => Array(r.weight).fill(r));
 
-const SCENARIOS = {
-  bruteForce: {
-    burstLen: () => rand(10, 20),
+const SCENARIOS = [
+  {
     level: 'warn',
     msg: () => `Failed login for user${rand(1, 50)}@example.com`,
-    metadata: (ctx) => ({ ip: ctx.ip, reason: 'bad_password' }),
-    escalateLast: { level: 'error', msg: () => 'Account locked after repeated failed logins' },
+    metadata: () => ({ ip: fakeIp(), reason: 'bad_password' }),
   },
-  outage: {
-    burstLen: () => rand(8, 16),
+  {
     level: 'error',
     msg: () =>
       pick([
@@ -88,15 +85,17 @@ const SCENARIOS = {
       ]),
     metadata: () => ({ upstream: pick(['payments-service', 'inventory-service', 'db-primary']) }),
   },
-  resourcePressure: {
-    burstLen: () => rand(6, 12),
+  {
     level: 'warn',
     msg: () => pick([`Disk usage at ${rand(88, 97)}%`, 'Memory usage critical']),
     metadata: () => ({ host: pick(['worker-1', 'worker-2', 'api-1']) }),
-    escalateLast: { level: 'fatal', msg: () => 'Out of memory: killed process' },
   },
-  regression: {
-    burstLen: () => rand(8, 14),
+  {
+    level: 'fatal',
+    msg: () => 'Out of memory: killed process',
+    metadata: () => ({ host: pick(['worker-1', 'worker-2', 'api-1']) }),
+  },
+  {
     level: 'error',
     msg: () =>
       pick([
@@ -106,26 +105,27 @@ const SCENARIOS = {
       ]),
     metadata: () => ({ deploy: `v1.${rand(10, 99)}.0` }),
   },
-};
+];
 
 function emitRoutine(baseUrl, apiKey, source) {
   const entry = pick(ROUTINE_TABLE);
   postLog(baseUrl, apiKey, { level: entry.level, message: entry.msg(), source });
 }
 
-function emitFromScenario(baseUrl, apiKey, source, burst) {
-  const { scenario, remaining, ctx } = burst;
-  const isLast = remaining === 1 && scenario.escalateLast;
-  const level = isLast ? scenario.escalateLast.level : scenario.level;
-  const message = isLast ? scenario.escalateLast.msg() : scenario.msg();
-  const metadata = scenario.metadata ? scenario.metadata(ctx) : undefined;
-  postLog(baseUrl, apiKey, { level, message, source, metadata });
+function emitIssue(baseUrl, apiKey, source) {
+  const scenario = pick(SCENARIOS);
+  postLog(baseUrl, apiKey, {
+    level: scenario.level,
+    message: scenario.msg(),
+    source,
+    metadata: scenario.metadata(),
+  });
 }
 
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const usage =
-    'Usage: node tools/demo-log-generator.js --key <apiKey> [--url http://localhost:4000] [--source demo-generator] [--interval-ms 1500] [--burst-chance 0.03]';
+    'Usage: node tools/demo-log-generator.js --key <apiKey> [--url http://localhost:4000] [--source demo-generator] [--interval-ms 1500] [--issue-ratio 0.5] [--max-logs n]';
 
   if (!args.key || typeof args.key !== 'string') {
     console.error(usage);
@@ -135,25 +135,27 @@ function main() {
   const baseUrl = (typeof args.url === 'string' && args.url) || 'http://localhost:4000';
   const source = typeof args.source === 'string' ? args.source : 'demo-generator';
   const intervalMs = Number(args['interval-ms']) || 1500;
-  const burstChance = args['burst-chance'] !== undefined ? Number(args['burst-chance']) : 0.03;
+  const issueRatio = args['issue-ratio'] !== undefined ? Number(args['issue-ratio']) : 0.5;
+  const maxLogs = args['max-logs'] !== undefined ? Number(args['max-logs']) : Infinity;
 
-  let burst = null;
   let stopped = false;
+  let shipped = 0;
 
   function tick() {
     if (stopped) return;
 
-    if (burst) {
-      emitFromScenario(baseUrl, args.key, source, burst);
-      burst.remaining--;
-      if (burst.remaining <= 0) burst = null;
-    } else if (Math.random() < burstChance) {
-      const key = pick(Object.keys(SCENARIOS));
-      const scenario = SCENARIOS[key];
-      burst = { scenario, remaining: scenario.burstLen(), ctx: { ip: fakeIp() } };
+    if (shipped >= maxLogs) {
+      stopped = true;
+      console.error(`[demo-log-generator] reached --max-logs limit (${maxLogs}); stopping.`);
+      return;
+    }
+
+    if (Math.random() < issueRatio) {
+      emitIssue(baseUrl, args.key, source);
     } else {
       emitRoutine(baseUrl, args.key, source);
     }
+    shipped++;
 
     const jitter = 0.6 + Math.random() * 0.8;
     setTimeout(tick, Math.round(intervalMs * jitter));
@@ -162,11 +164,13 @@ function main() {
   console.error(`[demo-log-generator] shipping to ${baseUrl}/logs/ingest every ~${intervalMs}ms (Ctrl+C to stop)`);
   tick();
 
-  process.on('SIGINT', () => {
+  const shutdown = () => {
     stopped = true;
     console.error('\n[demo-log-generator] stopping...');
     process.exit(0);
-  });
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
 
 main();
