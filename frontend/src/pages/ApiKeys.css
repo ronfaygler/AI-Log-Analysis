@@ -1,0 +1,75 @@
+.keys-page h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.keys-intro {
+  margin-bottom: 1.25rem;
+}
+
+.create-key-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.create-key-form input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.55rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
+.new-key-banner {
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: #1e3a5f;
+  border: 1px solid #2563c4;
+  border-radius: var(--radius);
+}
+
+.new-key-banner p {
+  margin: 0 0 0.75rem;
+}
+
+.key-value {
+  display: block;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background: var(--bg);
+  border-radius: var(--radius);
+  word-break: break-all;
+}
+
+.keys-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.key-item {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+  background: var(--surface);
+}
+
+.key-name {
+  font-weight: 600;
+  margin-right: 0.75rem;
+}
+
+.key-prefix {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.key-meta {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+}

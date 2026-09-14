@@ -12,7 +12,7 @@ function loadEnv() {
     redisUrl: process.env.REDIS_URL,
     redisQueueName: process.env.REDIS_QUEUE_NAME || 'logsentinel:jobs',
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-    anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
+    anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5',
     notifyWebhookUrl: process.env.NOTIFY_WEBHOOK_URL || '',
     batchMaxLogs: Number(process.env.BATCH_MAX_LOGS) || 25,
     batchWindowMs: Number(process.env.BATCH_WINDOW_MS) || 10000,

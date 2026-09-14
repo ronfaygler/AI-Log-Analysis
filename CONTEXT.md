@@ -106,7 +106,7 @@ frontend/        ──HTTP (JWT cookie)──►  api/
 | 2 | API service: JWT auth + log ingestion endpoint | ✅ |
 | 3 | Worker service: Redis consumer + Claude API + notifications | ✅ |
 | 4 | Batch AI analysis + API log read improvements (MCP removed) | ✅ |
-| 5 | React dashboard + Redis cache + MongoDB indexes | ⬜ |
+| 5 | React dashboard + Redis cache + MongoDB indexes | ✅ |
 | 6 | Tests (Jest + Supertest) + GitHub Actions CI | ⬜ |
 | 7 | AWS deploy + README polish + demo GIF | ⬜ |
 
@@ -122,9 +122,11 @@ At the start of each session, set the active day's **Done?** to 🔄 when work b
 
 **Tests (early, not Day 6):** Jest for `api/` (20) and `worker/` (11) — **31 total**; mocked Claude/Redis. GitHub Actions CI runs both. Day 6 stays open for frontend tests and any remaining coverage.
 
-**Next:** Day 5 — React dashboard + Redis cache + MongoDB indexes.
+**Day 5:** React dashboard (`frontend/`) — auth, log list/detail with filters, API keys. API: Redis cache on `GET /logs` and `GET /logs/:id`; compound MongoDB indexes on `LogEntry`.
 
-_Last updated: 2026-05-27_
+**Next:** Day 6 — expand tests (frontend) and close remaining CI coverage gaps.
+
+_Last updated: 2026-06-04_
 
 ## Do not
 

@@ -2,10 +2,19 @@ const express = require('express');
 const LogEntry = require('../models/LogEntry');
 const { requireApiKey } = require('../middleware/authApiKey');
 const { requireAuth } = require('../middleware/authJwt');
-const { publishJob } = require('../db/redis');
+const {
+  publishJob,
+  getCacheJson,
+  setCacheJson,
+  publishLogEvent,
+  invalidateUserLogCaches,
+  deleteCacheKey,
+} = require('../db/redis');
+const { listCacheKey, detailCacheKey } = require('../utils/logCache');
+const { LEVELS, parseTruthy, buildListFilter, sortLogsBySeverity } = require('../utils/logQuery');
+const { createLogsStreamRouter } = require('./logsStream');
 
 const router = express.Router();
-const LEVELS = new Set(['debug', 'info', 'warn', 'error', 'fatal']);
 
 router.post('/logs/ingest', requireApiKey, async (req, res, next) => {
   try {
@@ -48,6 +57,8 @@ router.post('/logs/ingest', requireApiKey, async (req, res, next) => {
 
     const config = req.app.locals.config;
     await publishJob(config.redisQueueName, job);
+    await invalidateUserLogCaches(req.user.id);
+    await publishLogEvent(req.user.id, entry._id);
 
     res.status(202).json({
       id: entry._id,
@@ -62,34 +73,71 @@ router.post('/logs/ingest', requireApiKey, async (req, res, next) => {
 router.get('/logs', requireAuth, async (req, res, next) => {
   try {
     const limit = Math.min(Number(req.query.limit) || 50, 100);
-    const filter = { userId: req.user.id };
-
-    if (req.query.level) {
-      if (!LEVELS.has(req.query.level)) {
-        return res.status(400).json({ error: 'level must be one of: debug, info, warn, error, fatal' });
-      }
-      filter.level = req.query.level;
-    }
-    if (req.query.status) {
-      const statuses = new Set(['queued', 'processing', 'done', 'failed']);
-      if (!statuses.has(req.query.status)) {
-        return res.status(400).json({ error: 'status must be one of: queued, processing, done, failed' });
-      }
-      filter.status = req.query.status;
-    }
-    if (req.query.source) {
-      filter.source = req.query.source;
-    }
-    if (req.query.q) {
-      filter.message = { $regex: req.query.q, $options: 'i' };
+    const built = buildListFilter(req.user.id, req.query);
+    if (built.error) {
+      return res.status(400).json({ error: built.error });
     }
 
-    const logs = await LogEntry.find(filter)
+    const sortMode = req.query.sort === 'severity' ? 'severity' : 'time';
+    if (req.query.sort && sortMode !== 'severity' && req.query.sort !== 'time') {
+      return res.status(400).json({ error: 'sort must be one of: time, severity' });
+    }
+
+    const config = req.app.locals.config;
+    const cacheKey = listCacheKey(req.user.id, {
+      limit,
+      level: req.query.level,
+      status: req.query.status,
+      source: req.query.source,
+      q: req.query.q,
+      issues: req.query.issues,
+      severity: req.query.severity,
+      sort: req.query.sort,
+    });
+
+    const skipCache = parseTruthy(req.query.fresh);
+    if (!skipCache) {
+      const cached = await getCacheJson(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+    }
+
+    let logs = await LogEntry.find(built.filter)
       .sort({ loggedAt: -1 })
       .limit(limit)
-      .select('-__v');
+      .select('-__v')
+      .lean();
 
-    res.json({ logs });
+    if (sortMode === 'severity') {
+      logs = sortLogsBySeverity(logs);
+    }
+
+    const payload = { logs, limit };
+    await setCacheJson(cacheKey, payload, config.logsCacheTtlSeconds);
+    res.json(payload);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.use(createLogsStreamRouter());
+
+router.delete('/logs/:id', requireAuth, async (req, res, next) => {
+  try {
+    const deleted = await LogEntry.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+    if (!deleted) {
+      return res.status(404).json({ error: 'Log not found' });
+    }
+
+    await deleteCacheKey(detailCacheKey(req.user.id, req.params.id));
+    await invalidateUserLogCaches(req.user.id);
+    await publishLogEvent(req.user.id, req.params.id, 'log.deleted');
+
+    res.json({ deleted: true, id: req.params.id });
   } catch (err) {
     next(err);
   }
@@ -97,11 +145,22 @@ router.get('/logs', requireAuth, async (req, res, next) => {
 
 router.get('/logs/:id', requireAuth, async (req, res, next) => {
   try {
-    const log = await LogEntry.findOne({ _id: req.params.id, userId: req.user.id }).select('-__v');
+    const config = req.app.locals.config;
+    const cacheKey = detailCacheKey(req.user.id, req.params.id);
+    const cached = await getCacheJson(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const log = await LogEntry.findOne({ _id: req.params.id, userId: req.user.id })
+      .select('-__v')
+      .lean();
     if (!log) {
       return res.status(404).json({ error: 'Log not found' });
     }
-    res.json({ log });
+    const payload = { log };
+    await setCacheJson(cacheKey, payload, config.logsCacheTtlSeconds);
+    res.json(payload);
   } catch (err) {
     next(err);
   }
