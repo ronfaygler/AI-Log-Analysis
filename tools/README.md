@@ -34,7 +34,7 @@ A failed ingest POST (bad key, API down, etc.) is logged to the tool's own stder
 Generates a continuous, realistic mix of synthetic logs and posts them to `/logs/ingest`, using the same auth as any real client (no backdoor). Useful for populating the dashboard when there's no real app connected — including keeping a public/CV demo deployment looking alive.
 
 ```bash
-node tools/demo-log-generator.js --key <apiKey> [--url http://localhost:4000] [--source demo-generator] [--interval-ms 1500] [--burst-chance 0.03] [--max-logs n]
+node tools/demo-log-generator.js --key <apiKey> [--url http://localhost:4000] [--source demo-generator] [--interval-ms 1500] [--issue-ratio 0.5] [--max-logs n]
 
 # example: cap a production demo at 100 logs total (then it stops on its own)
 node tools/demo-log-generator.js --key ls_xxx --url https://your-deployment --max-logs 100
@@ -46,15 +46,15 @@ node tools/demo-log-generator.js --key ls_xxx --url https://your-deployment --ma
 | `--url` | no | `http://localhost:4000` | Base URL of the API (point this at a deployed instance for a live public demo) |
 | `--source` | no | `demo-generator` | `source` field on each log entry |
 | `--interval-ms` | no | `1500` | Base delay between logs (jittered ±40%) |
-| `--burst-chance` | no | `0.03` | Probability per tick of starting an "incident" burst |
+| `--issue-ratio` | no | `0.5` | Fraction of logs that are an "issue" (warn/error/fatal) vs routine info/debug noise |
 | `--max-logs` | no | unlimited | Stop and exit after shipping this many logs total |
 
-Emits mostly routine info/debug noise (request timings, logins, cache hits, scheduled jobs), with occasional incident bursts matching the patterns in [CONTEXT.md](../CONTEXT.md):
+Each log independently rolls as either routine noise (request timings, logins, cache hits, scheduled jobs) or one of these incident patterns from [CONTEXT.md](../CONTEXT.md):
 
-- **Brute force** — repeated failed logins from one fake IP, escalating to an "account locked" error
+- **Brute force** — a failed login from a fake IP
 - **Outage** — connection timeouts / 503s / pool exhaustion
-- **Resource pressure** — rising disk usage, escalating to an OOM kill
-- **Regression** — new error types tagged with a fake deploy version
+- **Resource pressure** — high disk usage / OOM kill
+- **Regression** — a new error type tagged with a fake deploy version
 
 Runs until Ctrl+C. A failed ingest POST is logged to the tool's own stderr and the loop keeps running.
 

@@ -45,9 +45,11 @@ Include one "logs" entry per input index (0 through ${capped.length - 1}).
 Logs:
 ${logLines}`;
 
+  const maxTokens = Math.min(4096, 300 + capped.length * 120);
+
   const response = await anthropic.messages.create({
     model: config.anthropicModel,
-    max_tokens: 1024,
+    max_tokens: maxTokens,
     messages: [{ role: 'user', content: prompt }],
   });
 
