@@ -6,6 +6,10 @@ jest.mock('../src/services/notification', () => ({
   sendNotification: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../src/db/redis', () => ({
+  publishLogEvent: jest.fn().mockResolvedValue(undefined),
+}));
+
 const { analyzeLogBatch } = require('../src/services/claude');
 const { sendNotification } = require('../src/services/notification');
 const LogEntry = require('../src/models/LogEntry');
