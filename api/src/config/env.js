@@ -17,6 +17,7 @@ function loadEnv() {
     redisQueueName: process.env.REDIS_QUEUE_NAME || 'logsentinel:jobs',
     cookieSecure: process.env.COOKIE_SECURE === 'true',
     corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    logsCacheTtlSeconds: Number(process.env.LOGS_CACHE_TTL_SECONDS) || 30,
   };
 }
 

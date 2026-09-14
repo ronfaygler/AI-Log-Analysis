@@ -1,0 +1,69 @@
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge.muted {
+  color: var(--muted);
+  background: transparent;
+}
+
+.level-debug {
+  background: #243044;
+  color: var(--muted);
+}
+.level-info {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+.level-warn {
+  background: #422006;
+  color: var(--warn);
+}
+.level-error {
+  background: #450a0a;
+  color: var(--error);
+}
+.level-fatal {
+  background: #3b0764;
+  color: var(--fatal);
+}
+
+.status-queued {
+  background: #243044;
+  color: var(--muted);
+}
+.status-processing {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+.status-done {
+  background: #064e3b;
+  color: var(--success);
+}
+.status-failed {
+  background: #450a0a;
+  color: var(--error);
+}
+
+.sev-low {
+  background: #064e3b;
+  color: var(--success);
+}
+.sev-medium {
+  background: #422006;
+  color: var(--warn);
+}
+.sev-high {
+  background: #450a0a;
+  color: var(--error);
+}
+.sev-critical {
+  background: #3b0764;
+  color: var(--fatal);
+}

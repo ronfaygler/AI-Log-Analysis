@@ -1,0 +1,98 @@
+.detail-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.back-link {
+  display: inline-block;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.back-link:hover {
+  color: var(--accent);
+}
+
+.detail-header {
+  margin-bottom: 1.5rem;
+}
+
+.detail-header .badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.detail-message {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.detail-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.detail-section {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.detail-section h2 {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.analysis-card dl {
+  margin: 0;
+}
+
+.analysis-card dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 1rem;
+}
+
+.analysis-card dt:first-child {
+  margin-top: 0;
+}
+
+.analysis-card dd {
+  margin: 0.35rem 0 0;
+}
+
+.error-card {
+  border-color: #7f1d1d;
+}
+
+.error-card pre {
+  margin: 0;
+  color: var(--error);
+  white-space: pre-wrap;
+}
+
+.metadata-json {
+  margin: 0;
+  padding: 1rem;
+  background: var(--bg);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-size: 0.8rem;
+}
+
+.page-error {
+  color: var(--error);
+}

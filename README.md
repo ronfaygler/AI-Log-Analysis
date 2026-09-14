@@ -29,6 +29,15 @@ See [CONTEXT.md](./CONTEXT.md) for product vision, example logs, and dashboard p
 3. See [CONTEXT.md](./CONTEXT.md) for architecture and session context.
 4. See [DECISIONS.md](./DECISIONS.md) for architecture decisions and problem log.
 
+## Tools
+
+Local dev/demo utilities in [`tools/`](./tools) — not part of the deployed stack, run against a running API:
+
+- `node tools/log-shipper.js --key <apiKey> -- node myapp.js` — wraps any command, streams its output to your terminal unchanged, and ships each line to the API live.
+- `node tools/demo-log-generator.js --key <apiKey>` — generates realistic synthetic traffic (routine noise + occasional incident bursts) to populate the dashboard for demos, local or deployed.
+
+See [tools/README.md](./tools/README.md) for full usage.
+
 ## Tests
 
 No Docker or API keys required for unit tests (in-memory MongoDB; Redis and Claude mocked).
@@ -46,4 +55,5 @@ CI runs the same via `.github/workflows/ci.yml` on push/PR to `main`.
 - **Day 3:** Worker (Redis consumer, Claude, notifications). See [worker/README.md](./worker/README.md).
 - **Day 4:** Batch AI analysis; MCP removed; API log read endpoints. See [worker/README.md](./worker/README.md).
 - **Tests:** API + worker unit tests + CI (Day 6 plan not closed).
-- **Next:** Day 5 — frontend.
+- **Day 5:** React dashboard. See [frontend/README.md](./frontend/README.md).
+- **Next:** Day 6 — tests + CI polish.

@@ -30,4 +30,17 @@ async function popJob(queueName, timeoutSeconds = 0) {
   return JSON.parse(payload);
 }
 
-module.exports = { connectRedis, getRedis, popJob };
+function logEventsChannel(userId) {
+  return `logsentinel:events:${userId}`;
+}
+
+async function publishLogEvent(userId, logEntryId, event = 'log.updated') {
+  const redis = getRedis();
+  const channel = logEventsChannel(userId);
+  await redis.publish(
+    channel,
+    JSON.stringify({ event, logEntryId: String(logEntryId) })
+  );
+}
+
+module.exports = { connectRedis, getRedis, popJob, publishLogEvent, logEventsChannel };

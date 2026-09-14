@@ -1,6 +1,12 @@
 const LogEntry = require('../models/LogEntry');
+const { publishLogEvent } = require('../db/redis');
 const { analyzeLogBatch } = require('../services/claude');
 const { sendNotification } = require('../services/notification');
+
+async function saveAndNotify(entry) {
+  await entry.save();
+  await publishLogEvent(entry.userId, entry._id);
+}
 
 async function processBatch(jobs, config) {
   const pairs = [];
@@ -12,7 +18,7 @@ async function processBatch(jobs, config) {
       continue;
     }
     entry.status = 'processing';
-    await entry.save();
+    await saveAndNotify(entry);
     pairs.push({ job, entry });
   }
 
@@ -40,7 +46,7 @@ async function processBatch(jobs, config) {
       entry.status = 'done';
       entry.analysis = analysis;
       entry.errorMessage = undefined;
-      await entry.save();
+      await saveAndNotify(entry);
 
       await sendNotification(config, {
         event: 'log.analyzed',
@@ -56,7 +62,7 @@ async function processBatch(jobs, config) {
     for (const { job, entry } of pairs) {
       entry.status = 'failed';
       entry.errorMessage = err.message;
-      await entry.save();
+      await saveAndNotify(entry);
 
       await sendNotification(config, {
         event: 'log.failed',

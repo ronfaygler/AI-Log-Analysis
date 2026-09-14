@@ -21,4 +21,10 @@ const logEntrySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+logEntrySchema.index({ userId: 1, loggedAt: -1 });
+logEntrySchema.index({ userId: 1, level: 1, loggedAt: -1 });
+logEntrySchema.index({ userId: 1, status: 1, loggedAt: -1 });
+logEntrySchema.index({ userId: 1, source: 1, loggedAt: -1 });
+logEntrySchema.index({ userId: 1, 'analysis.severity': 1, loggedAt: -1 });
+
 module.exports = mongoose.model('LogEntry', logEntrySchema);

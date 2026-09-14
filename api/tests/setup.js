@@ -5,6 +5,12 @@ jest.mock('../src/db/redis', () => ({
   connectRedis: jest.fn().mockResolvedValue({}),
   getRedis: jest.fn(),
   publishJob: jest.fn().mockResolvedValue(undefined),
+  getCacheJson: jest.fn().mockResolvedValue(null),
+  setCacheJson: jest.fn().mockResolvedValue(undefined),
+  publishLogEvent: jest.fn().mockResolvedValue(undefined),
+  invalidateUserLogCaches: jest.fn().mockResolvedValue(undefined),
+  deleteCacheKey: jest.fn().mockResolvedValue(undefined),
+  logEventsChannel: jest.fn((userId) => `logsentinel:events:${userId}`),
 }));
 
 let mongoServer;

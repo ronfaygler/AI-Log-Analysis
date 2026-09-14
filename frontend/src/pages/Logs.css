@@ -1,0 +1,147 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.view-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.view-tab {
+  padding: 0.4rem 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.view-tab.active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.logs-footer {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.actions-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.btn-danger {
+  color: var(--error);
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.filters select,
+.filters input {
+  padding: 0.5rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
+.filters input[type='search'] {
+  flex: 1;
+  min-width: 180px;
+}
+
+.page-error {
+  color: var(--error);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.logs-table th,
+.logs-table td {
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.logs-table th {
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.logs-table tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+@keyframes row-flash {
+  0%   { background: rgba(99, 102, 241, 0.18); }
+  100% { background: transparent; }
+}
+
+.row--updated {
+  animation: row-flash 2s ease-out forwards;
+}
+
+.time-cell {
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.source-cell {
+  color: var(--muted);
+}
+
+.log-link {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.log-link:hover {
+  color: var(--accent);
+}

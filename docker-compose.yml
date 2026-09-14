@@ -16,6 +16,7 @@ services:
       REDIS_QUEUE_NAME: ${REDIS_QUEUE_NAME:-logsentinel:jobs}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      LOGS_CACHE_TTL_SECONDS: ${LOGS_CACHE_TTL_SECONDS:-30}
     depends_on:
       - mongo
       - redis
@@ -32,7 +33,7 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       REDIS_QUEUE_NAME: ${REDIS_QUEUE_NAME:-logsentinel:jobs}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-haiku-4-5}
       NOTIFY_WEBHOOK_URL: ${NOTIFY_WEBHOOK_URL:-}
       BATCH_MAX_LOGS: ${BATCH_MAX_LOGS:-25}
       BATCH_WINDOW_MS: ${BATCH_WINDOW_MS:-10000}

@@ -8,9 +8,11 @@ const testConfig = {
   jwtSecret: 'test-jwt-secret-min-32-chars-long',
   jwtExpiresIn: '1h',
   apiKeySalt: 'test-api-key-salt',
+  redisUrl: 'redis://localhost:6379',
   redisQueueName: 'logsentinel:test:jobs',
   cookieSecure: false,
   corsOrigin: 'http://localhost:3000',
+  logsCacheTtlSeconds: 30,
 };
 
 module.exports = { testConfig, uniqueEmail };

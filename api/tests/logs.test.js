@@ -1,6 +1,13 @@
 const request = require('supertest');
 const { createApp } = require('../src/app');
-const { publishJob } = require('../src/db/redis');
+const {
+  publishJob,
+  getCacheJson,
+  setCacheJson,
+  publishLogEvent,
+  invalidateUserLogCaches,
+  deleteCacheKey,
+} = require('../src/db/redis');
 const LogEntry = require('../src/models/LogEntry');
 const { testConfig, uniqueEmail } = require('./helpers');
 
@@ -21,7 +28,18 @@ async function registerAndGetApiKey(agent) {
 
 describe('logs', () => {
   beforeEach(() => {
-    publishJob.mockClear();
+    publishJob.mockReset();
+    getCacheJson.mockReset();
+    setCacheJson.mockReset();
+    publishLogEvent.mockReset();
+    invalidateUserLogCaches.mockReset();
+    deleteCacheKey.mockReset();
+    publishJob.mockResolvedValue(undefined);
+    getCacheJson.mockResolvedValue(null);
+    setCacheJson.mockResolvedValue(undefined);
+    publishLogEvent.mockResolvedValue(undefined);
+    invalidateUserLogCaches.mockResolvedValue(undefined);
+    deleteCacheKey.mockResolvedValue(undefined);
   });
 
   it('ingests log with API key and enqueues job', async () => {
@@ -152,6 +170,21 @@ describe('logs', () => {
     expect(bySource.body.logs).toHaveLength(1);
   });
 
+  it('caches log list responses in Redis', async () => {
+    const agent = request.agent(app);
+    const apiKey = await registerAndGetApiKey(agent);
+
+    await request(app)
+      .post('/logs/ingest')
+      .set('X-API-Key', apiKey)
+      .send({ level: 'info', message: 'cache me' });
+
+    getCacheJson.mockResolvedValueOnce(null);
+    await agent.get('/logs').expect(200);
+    expect(setCacheJson).toHaveBeenCalled();
+    expect(setCacheJson.mock.calls[0][2]).toBe(testConfig.logsCacheTtlSeconds);
+  });
+
   it('returns 404 for unknown log id', async () => {
     const agent = request.agent(app);
     await agent.post('/auth/register').send({ email: uniqueEmail('404'), password: 'password123' });
@@ -159,5 +192,136 @@ describe('logs', () => {
     await agent
       .get('/logs/507f1f77bcf86cd799439011')
       .expect(404);
+  });
+
+  it('filters issues-only logs', async () => {
+    const email = uniqueEmail('issues');
+    const agent = request.agent(app);
+    const reg = await agent.post('/auth/register').send({ email, password: 'password123' });
+    const userId = reg.body.user.id;
+    const apiKey = (await agent.post('/keys').send({ name: 'issues-key' }).expect(201)).body.key;
+    const ApiKey = require('../src/models/ApiKey');
+    const keyDoc = await ApiKey.findOne({ userId });
+
+    await LogEntry.create({
+      userId,
+      apiKeyId: keyDoc._id,
+      level: 'info',
+      message: 'benign done',
+      loggedAt: new Date(),
+      status: 'done',
+      analysis: { severity: 'low', summary: 'ok' },
+    });
+    await LogEntry.create({
+      userId,
+      apiKeyId: keyDoc._id,
+      level: 'error',
+      message: 'failed analysis',
+      loggedAt: new Date(),
+      status: 'failed',
+    });
+    await LogEntry.create({
+      userId,
+      apiKeyId: keyDoc._id,
+      level: 'warn',
+      message: 'high severity',
+      loggedAt: new Date(),
+      status: 'done',
+      analysis: { severity: 'high', summary: 'bad' },
+    });
+
+    const issues = await agent.get('/logs?issues=true').expect(200);
+    expect(issues.body.logs).toHaveLength(2);
+    const messages = issues.body.logs.map((l) => l.message);
+    expect(messages).toContain('failed analysis');
+    expect(messages).toContain('high severity');
+    expect(messages).not.toContain('benign done');
+
+    await request(app)
+      .post('/logs/ingest')
+      .set('X-API-Key', apiKey)
+      .send({ level: 'error', message: 'in-flight error' })
+      .expect(202);
+
+    const withInflight = await agent.get('/logs?issues=true').expect(200);
+    expect(withInflight.body.logs.some((l) => l.message === 'in-flight error')).toBe(true);
+  });
+
+  it('filters by severity and sorts by severity', async () => {
+    const agent = request.agent(app);
+    const reg = await agent.post('/auth/register').send({
+      email: uniqueEmail('severity'),
+      password: 'password123',
+    });
+    const userId = reg.body.user.id;
+    await agent.post('/keys').send({ name: 'severity-key' }).expect(201);
+    const ApiKey = require('../src/models/ApiKey');
+    const keyDoc = await ApiKey.findOne({ userId });
+
+    const base = {
+      userId,
+      apiKeyId: keyDoc._id,
+      loggedAt: new Date(),
+      status: 'done',
+    };
+    await LogEntry.create({ ...base, level: 'warn', message: 'low one', analysis: { severity: 'low' } });
+    await LogEntry.create({ ...base, level: 'error', message: 'critical one', analysis: { severity: 'critical' } });
+    await LogEntry.create({ ...base, level: 'error', message: 'medium one', analysis: { severity: 'medium' } });
+
+    const criticalOnly = await agent.get('/logs?severity=critical').expect(200);
+    expect(criticalOnly.body.logs).toHaveLength(1);
+    expect(criticalOnly.body.logs[0].message).toBe('critical one');
+
+    const sorted = await agent.get('/logs?sort=severity').expect(200);
+    expect(sorted.body.logs.map((l) => l.analysis.severity)).toEqual(['critical', 'medium', 'low']);
+  });
+
+  it('bypasses cache when fresh=1', async () => {
+    const agent = request.agent(app);
+    await agent.post('/auth/register').send({ email: uniqueEmail('fresh'), password: 'password123' });
+    const apiKey = (await agent.post('/keys').send({ name: 'fresh-key' }).expect(201)).body.key;
+
+    await request(app)
+      .post('/logs/ingest')
+      .set('X-API-Key', apiKey)
+      .send({ level: 'info', message: 'fresh test' });
+
+    const fresh = await agent.get('/logs?fresh=1').expect(200);
+    expect(fresh.body.logs[0].message).toBe('fresh test');
+    expect(getCacheJson).not.toHaveBeenCalled();
+
+    getCacheJson.mockResolvedValue({ logs: [{ message: 'stale from cache' }] });
+    const cached = await agent.get('/logs').expect(200);
+    expect(cached.body.logs[0].message).toBe('stale from cache');
+    expect(getCacheJson).toHaveBeenCalled();
+  });
+
+  it('deletes a log and returns 404 for other users', async () => {
+    const emailA = uniqueEmail('del-a');
+    const emailB = uniqueEmail('del-b');
+    const agentA = request.agent(app);
+    const agentB = request.agent(app);
+
+    await agentA.post('/auth/register').send({ email: emailA, password: 'password123' });
+    await agentB.post('/auth/register').send({ email: emailB, password: 'password123' });
+    const apiKeyA = (await agentA.post('/keys').send({ name: 'del-key' }).expect(201)).body.key;
+
+    const created = await request(app)
+      .post('/logs/ingest')
+      .set('X-API-Key', apiKeyA)
+      .send({ level: 'error', message: 'delete me' })
+      .expect(202);
+
+    await agentA.delete(`/logs/${created.body.id}`).expect(200);
+    expect(publishLogEvent).toHaveBeenCalledWith(
+      expect.any(String),
+      created.body.id,
+      'log.deleted'
+    );
+    expect(invalidateUserLogCaches).toHaveBeenCalled();
+    expect(deleteCacheKey).toHaveBeenCalled();
+
+    await agentA.get(`/logs/${created.body.id}`).expect(404);
+    await agentB.delete(`/logs/${created.body.id}`).expect(404);
   });
 });
