@@ -2,6 +2,8 @@
 
 AI-powered log analysis — ingest logs, batch-analyze with Claude, view insights in the dashboard.
 
+![LogSentinel dashboard](./assets/screenshot.png)
+
 ## Services
 
 Apps send logs with an **API key**; the **worker** batches them and calls Claude once per batch; the **dashboard** reads results from the **API**. MongoDB stores logs and analysis; Redis holds the job queue.
