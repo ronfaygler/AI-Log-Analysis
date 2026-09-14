@@ -119,6 +119,59 @@ describe('logs', () => {
     expect(res.body.logs[0].message).toBe('disk 90%');
   });
 
+  it('paginates logs 50 per page and reports totalPages', async () => {
+    const agent = request.agent(app);
+    const apiKey = await registerAndGetApiKey(agent);
+
+    for (let i = 0; i < 60; i++) {
+      await request(app)
+        .post('/logs/ingest')
+        .set('X-API-Key', apiKey)
+        .send({ level: 'info', message: `log ${i}` });
+    }
+
+    const page1 = await agent.get('/logs?fresh=1').expect(200);
+    expect(page1.body.logs).toHaveLength(50);
+    expect(page1.body.page).toBe(1);
+    expect(page1.body.total).toBe(60);
+    expect(page1.body.totalPages).toBe(2);
+
+    const page2 = await agent.get('/logs?page=2&fresh=1').expect(200);
+    expect(page2.body.logs).toHaveLength(10);
+    expect(page2.body.page).toBe(2);
+  });
+
+  it('caps total listable logs at 500 even if more exist', async () => {
+    const agent = request.agent(app);
+    const apiKey = await registerAndGetApiKey(agent);
+    const mongoose = require('mongoose');
+
+    const meRes = await agent.get('/auth/me').expect(200);
+    const userId = meRes.body.user.id;
+    const apiKeyId = new mongoose.Types.ObjectId();
+
+    await LogEntry.insertMany(
+      Array.from({ length: 510 }, (_, i) => ({
+        userId,
+        apiKeyId,
+        level: 'info',
+        message: `bulk ${i}`,
+        loggedAt: new Date(),
+        status: 'done',
+      }))
+    );
+
+    const res = await agent.get('/logs?fresh=1').expect(200);
+    expect(res.body.total).toBe(500);
+    expect(res.body.totalPages).toBe(10);
+
+    const lastPage = await agent.get('/logs?page=10&fresh=1').expect(200);
+    expect(lastPage.body.logs).toHaveLength(50);
+
+    const beyond = await agent.get('/logs?page=11&fresh=1').expect(200);
+    expect(beyond.body.logs).toHaveLength(0);
+  });
+
   it('gets a log by id with bearer token', async () => {
     const email = uniqueEmail('bearer-get');
     const agent = request.agent(app);

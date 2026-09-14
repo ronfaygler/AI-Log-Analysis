@@ -21,6 +21,9 @@ export function Logs() {
   const logsRef = useRef(logs);
   logsRef.current = logs;
   const [limit, setLimit] = useState(50);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState('issues');
@@ -40,7 +43,7 @@ export function Logs() {
         setError('');
       }
       try {
-        const params = { limit };
+        const params = { limit, page };
         if (viewMode === 'issues') params.issues = true;
         if (filters.level) params.level = filters.level;
         if (filters.status) params.status = filters.status;
@@ -52,18 +55,24 @@ export function Logs() {
         const data = await api.listLogs(params);
         setLogs(data.logs);
         if (data.limit) setLimit(data.limit);
+        setTotalPages(data.totalPages || 1);
+        setTotal(data.total || 0);
       } catch (err) {
         if (!silent) setError(err.message);
       } finally {
         if (!silent) setLoading(false);
       }
     },
-    [filters, viewMode, limit]
+    [filters, viewMode, limit, page]
   );
 
   useEffect(() => {
     loadLogs();
   }, [loadLogs]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [viewMode, filters]);
 
   const patchLog = useCallback(async (logId) => {
     try {
@@ -122,8 +131,8 @@ export function Logs() {
 
   const footerLabel =
     viewMode === 'issues'
-      ? `Showing latest ${logs.length} issues`
-      : `Showing latest ${logs.length} logs`;
+      ? `Page ${page} of ${totalPages} — ${total} issue${total === 1 ? '' : 's'} total (max 500)`
+      : `Page ${page} of ${totalPages} — ${total} log${total === 1 ? '' : 's'} total (max 500)`;
 
   return (
     <div className="logs-page">
@@ -267,6 +276,27 @@ export function Logs() {
             </table>
           </div>
           <p className="logs-footer muted">{footerLabel}</p>
+          <div className="pagination">
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+            >
+              Previous
+            </button>
+            <span className="muted">
+              Page {page} / {totalPages}
+            </span>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+            >
+              Next
+            </button>
+          </div>
         </>
       )}
     </div>

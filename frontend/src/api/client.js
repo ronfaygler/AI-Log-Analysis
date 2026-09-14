@@ -35,6 +35,7 @@ export const api = {
     if (params?.source) qs.set('source', params.source);
     if (params?.q) qs.set('q', params.q);
     if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.page) qs.set('page', String(params.page));
     if (params?.issues) qs.set('issues', 'true');
     if (params?.severity) qs.set('severity', params.severity);
     if (params?.sort) qs.set('sort', params.sort);

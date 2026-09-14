@@ -3,6 +3,7 @@ function listCacheKey(userId, query) {
     'logs:list',
     userId,
     query.limit ?? '50',
+    query.page ?? '1',
     query.level ?? '',
     query.status ?? '',
     query.source ?? '',

@@ -70,9 +70,14 @@ router.post('/logs/ingest', requireApiKey, async (req, res, next) => {
   }
 });
 
+const MAX_LISTABLE_LOGS = 500;
+
 router.get('/logs', requireAuth, async (req, res, next) => {
   try {
-    const limit = Math.min(Number(req.query.limit) || 50, 100);
+    const limit = Math.min(Number(req.query.limit) || 50, 50);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const skip = (page - 1) * limit;
+
     const built = buildListFilter(req.user.id, req.query);
     if (built.error) {
       return res.status(400).json({ error: built.error });
@@ -86,6 +91,7 @@ router.get('/logs', requireAuth, async (req, res, next) => {
     const config = req.app.locals.config;
     const cacheKey = listCacheKey(req.user.id, {
       limit,
+      page,
       level: req.query.level,
       status: req.query.status,
       source: req.query.source,
@@ -103,17 +109,25 @@ router.get('/logs', requireAuth, async (req, res, next) => {
       }
     }
 
-    let logs = await LogEntry.find(built.filter)
-      .sort({ loggedAt: -1 })
-      .limit(limit)
-      .select('-__v')
-      .lean();
+    const matchingCount = await LogEntry.countDocuments(built.filter);
+    const total = Math.min(matchingCount, MAX_LISTABLE_LOGS);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
 
-    if (sortMode === 'severity') {
-      logs = sortLogsBySeverity(logs);
+    let logs = [];
+    if (skip < total) {
+      logs = await LogEntry.find(built.filter)
+        .sort({ loggedAt: -1 })
+        .skip(skip)
+        .limit(Math.min(limit, total - skip))
+        .select('-__v')
+        .lean();
+
+      if (sortMode === 'severity') {
+        logs = sortLogsBySeverity(logs);
+      }
     }
 
-    const payload = { logs, limit };
+    const payload = { logs, limit, page, total, totalPages };
     await setCacheJson(cacheKey, payload, config.logsCacheTtlSeconds);
     res.json(payload);
   } catch (err) {
