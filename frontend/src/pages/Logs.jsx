@@ -271,12 +271,14 @@ export function Logs({ user }) {
           <p className="muted">
             {viewMode === 'issues'
               ? 'Benign logs are hidden. Switch to All logs or ingest new errors.'
-              : (
-                <>
-                  Create an API key and send logs with{' '}
-                  <code className="mono">POST /logs/ingest</code>.
-                </>
-              )}
+              : isDemoAccount
+                ? 'Click "Regenerate demo logs" above to populate this dashboard.'
+                : (
+                  <>
+                    Create an API key and send logs with{' '}
+                    <code className="mono">POST /logs/ingest</code>.
+                  </>
+                )}
           </p>
         </div>
       )}
