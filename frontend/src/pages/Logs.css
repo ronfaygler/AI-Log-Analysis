@@ -1,7 +1,9 @@
 .page-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   margin-bottom: 1.25rem;
 }
 
@@ -41,6 +43,7 @@
 .demo-banner-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -48,6 +51,22 @@
   white-space: nowrap;
   font-size: 1rem;
   padding: 0.7rem 1.4rem;
+}
+
+@media (max-width: 640px) {
+  .demo-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .demo-banner-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .demo-banner-btn {
+    width: 100%;
+  }
 }
 
 .view-tabs {

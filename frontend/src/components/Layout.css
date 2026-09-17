@@ -1,10 +1,23 @@
 .layout-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1.5rem;
-  padding: 0.75rem 1.5rem;
+  gap: 0.5rem 1.5rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+}
+
+@media (max-width: 640px) {
+  .layout-header {
+    padding: 0.75rem;
+  }
+
+  .header-right {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .brand {
@@ -51,4 +64,10 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .layout-main {
+    padding: 1rem;
+  }
 }
