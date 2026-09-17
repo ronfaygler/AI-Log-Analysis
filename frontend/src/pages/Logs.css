@@ -67,6 +67,41 @@
   .demo-banner-btn {
     width: 100%;
   }
+
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .filters select,
+  .filters input {
+    width: 100%;
+    font-size: 0.8125rem;
+    padding: 0.45rem 0.55rem;
+    min-width: 0;
+  }
+
+  .filters button[type='submit'] {
+    grid-column: 1 / -1;
+  }
+
+  .col-source {
+    display: none;
+  }
+
+  .message-cell {
+    max-width: 140px;
+  }
+
+  .logs-table {
+    font-size: 0.8125rem;
+  }
+
+  .logs-table th,
+  .logs-table td {
+    padding: 0.5rem 0.5rem;
+  }
 }
 
 .view-tabs {
@@ -150,6 +185,12 @@
   min-width: 180px;
 }
 
+.btn-icon {
+  padding: 0.35rem 0.55rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .page-error {
   color: var(--error);
 }
@@ -216,7 +257,17 @@
   color: var(--muted);
 }
 
+.message-cell {
+  max-width: 320px;
+}
+
 .log-link {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
   color: var(--text);
   text-decoration: none;
 }

@@ -7,7 +7,12 @@ import './Logs.css';
 
 function formatTime(iso) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleString();
+  return new Date(iso).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function snippet(text, max = 80) {
@@ -315,7 +320,7 @@ export function Logs({ user }) {
                 <tr>
                   <th>Time</th>
                   <th>Level</th>
-                  <th>Source</th>
+                  <th className="col-source">Source</th>
                   <th>Message</th>
                   <th>Status</th>
                   <th>Severity</th>
@@ -329,8 +334,8 @@ export function Logs({ user }) {
                     <td>
                       <LevelBadge level={log.level} />
                     </td>
-                    <td className="source-cell">{log.source || '—'}</td>
-                    <td>
+                    <td className="source-cell col-source">{log.source || '—'}</td>
+                    <td className="message-cell">
                       <Link to={`/logs/${log._id}`} className="log-link">
                         {snippet(log.message)}
                       </Link>
@@ -344,11 +349,12 @@ export function Logs({ user }) {
                     <td className="actions-cell">
                       <button
                         type="button"
-                        className="btn btn-ghost btn-sm btn-danger"
+                        className="btn btn-ghost btn-sm btn-danger btn-icon"
                         title="Delete log"
+                        aria-label="Delete log"
                         onClick={(e) => handleDelete(e, log._id)}
                       >
-                        Delete
+                        🗑
                       </button>
                     </td>
                   </tr>
