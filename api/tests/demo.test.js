@@ -10,6 +10,8 @@ const {
 } = require('../src/db/redis');
 const LogEntry = require('../src/models/LogEntry');
 const User = require('../src/models/User');
+const mongoose = require('mongoose');
+const { simulatePipeline } = require('../src/routes/demo');
 const { testConfig } = require('./helpers');
 
 // Zero-delay timing so tests don't spend real wall-clock time (or leave
@@ -141,5 +143,30 @@ describe('demo mode', () => {
     }
     expect(publishJob).not.toHaveBeenCalled();
     expect(publishLogEvent).toHaveBeenCalled();
+  });
+
+  it('marks an entry failed (not done) if its fixture analysis is missing summary or recommendation', async () => {
+    const userId = new mongoose.Types.ObjectId();
+    const apiKeyId = new mongoose.Types.ObjectId();
+    const entry = await LogEntry.create({
+      userId,
+      apiKeyId,
+      level: 'info',
+      message: 'incomplete fixture',
+      loggedAt: new Date(),
+      status: 'queued',
+    });
+
+    const incompleteFixtures = [{ analysis: { severity: 'low' } }]; // no summary, no recommendation
+    await simulatePipeline([entry], incompleteFixtures, userId, {
+      initialDelayMs: 0,
+      perDocDelayMs: 0,
+      processingDelayMs: () => 0,
+      interChunkDelayMs: () => 0,
+    });
+
+    const updated = await LogEntry.findById(entry._id);
+    expect(updated.status).toBe('failed');
+    expect(updated.errorMessage).toMatch(/missing summary or recommendation/i);
   });
 });

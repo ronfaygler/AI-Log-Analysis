@@ -131,13 +131,14 @@ async function simulatePipeline(inserted, fixtures, demoUserId, timing) {
     await sleep(timing.processingDelayMs());
 
     for (let i = 0; i < chunkDocs.length; i++) {
+      const analysis = { ...chunkFixtures[i].analysis, analyzedAt: new Date() };
+      const complete = Boolean(analysis.summary && analysis.recommendation);
       await LogEntry.updateOne(
         { _id: chunkDocs[i]._id },
         {
-          $set: {
-            status: 'done',
-            analysis: { ...chunkFixtures[i].analysis, analyzedAt: new Date() },
-          },
+          $set: complete
+            ? { status: 'done', analysis }
+            : { status: 'failed', errorMessage: 'Demo fixture missing summary or recommendation' },
         }
       );
       await publishLogEvent(demoUserId, chunkDocs[i]._id);
