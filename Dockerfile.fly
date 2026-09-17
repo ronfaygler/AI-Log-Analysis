@@ -1,0 +1,16 @@
+FROM node:20-alpine
+WORKDIR /app
+
+COPY api/package.json api/package-lock.json* ./api/
+RUN cd api && (npm ci --omit=dev 2>/dev/null || npm install --omit=dev)
+
+COPY worker/package.json worker/package-lock.json* ./worker/
+RUN cd worker && (npm ci --omit=dev 2>/dev/null || npm install --omit=dev)
+
+COPY api/src ./api/src
+COPY worker/src ./worker/src
+COPY deploy/start-combined.sh ./start-combined.sh
+RUN chmod +x ./start-combined.sh
+
+EXPOSE 4000
+CMD ["./start-combined.sh"]

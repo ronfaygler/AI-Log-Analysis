@@ -2,6 +2,7 @@ app = "logsentinel-api"
 primary_region = "iad"
 
 [build]
+  dockerfile = "Dockerfile.fly"
 
 [env]
   PORT = "4000"

@@ -12,6 +12,13 @@ _(To be filled as we build.)_
 - **Alternatives considered:** Single Express server handling everything.
 - **Date:** 2026-05-20
 
+### Fly.io deployment: one machine running both api and worker
+- **What:** Production `api` and `worker` are packaged into a single Docker image (`Dockerfile.fly`, repo root) and run as two Node processes inside one container (`deploy/start-combined.sh`), deployed as one Fly app (`logsentinel-api`) — not two separate Fly apps each with their own machine.
+- **Why:** Fly.io moved to a paid-only model (no more free allowance) around the time this was deployed — each Fly app/machine is billed independently (~$1.94/mo for the smallest size), so two apps cost ~$3.88/mo vs. ~$1.94/mo for one. This project's real load doesn't need `api` and `worker` to scale or fail independently, so the cost saving outweighed that isolation.
+- **Alternatives considered:** Keep two separate Fly apps (simpler, doubles the bill); Render (free web service, but Background Workers require a paid plan there too, and the free tier sleeps — worse for a public demo); Oracle Cloud "Always Free" Ampere A1 VM (genuinely $0/mo, but manual VM ops instead of `fly deploy`, and known to hit "out of host capacity" errors on signup in busy regions).
+- **Trade-off accepted:** if the one machine crashes, both `api` and `worker` go down together instead of failing independently. `api/` and `worker/` remain fully separate codebases (no shared imports, no merged Express app) — this is packaging-only, not an architecture change to the "no monolith" rule below.
+- **Date:** 2026-09-17
+
 ### JWT in HttpOnly cookies
 - **What:** Dashboard auth uses `logsentinel_token` cookie; no JWT in `localStorage`.
 - **Why:** Reduces XSS token theft risk; aligns with CONTEXT auth requirements.

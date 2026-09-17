@@ -154,7 +154,7 @@ _Last updated: 2026-09-17_
 
 ## Do not
 
-- **No monolith** — do not merge api and worker into one Express app.
+- **No monolith** — do not merge api and worker into one Express app/codebase. (Production *does* run both as separate Node processes in one Fly machine for cost reasons — `Dockerfile.fly` / `DECISIONS.md` — that's packaging, not a code merge; `api/` and `worker/` stay independent codebases.)
 - **No shared runtime code** between services except shared **types** (e.g. a small `packages/types` or duplicated interfaces only when necessary).
 - **No hardcoded secrets** — use `.env` locally and secrets in CI/production; never commit credentials.
 - **No application logic in scaffold commits** — implement features in focused PRs/commits per service.
