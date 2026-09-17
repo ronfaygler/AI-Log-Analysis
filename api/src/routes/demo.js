@@ -64,6 +64,17 @@ router.post('/demo/login', async (req, res, next) => {
   }
 });
 
+router.post('/demo/clear', async (req, res, next) => {
+  try {
+    const demoUser = await getOrCreateDemoUser();
+    await LogEntry.deleteMany({ userId: demoUser._id });
+    await invalidateUserLogCaches(demoUser._id);
+    res.json({ cleared: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/demo/seed', async (req, res, next) => {
   try {
     const acquired = await tryAcquireLock(SEED_LOCK_KEY, SEED_LOCK_TTL_SECONDS);

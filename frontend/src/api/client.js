@@ -50,4 +50,5 @@ export const api = {
   deleteLog: (id) => request(`/logs/${id}`, { method: 'DELETE' }),
   demoLogin: () => request('/demo/login', { method: 'POST' }),
   seedDemo: () => request('/demo/seed', { method: 'POST' }),
+  clearDemo: () => request('/demo/clear', { method: 'POST' }),
 };

@@ -54,6 +54,7 @@ Uses `mongodb-memory-server` and mocks Redis. No `.env` required for tests.
 | DELETE | `/logs/:id` | Cookie or Bearer | Delete a log (invalidates cache, publishes `log.deleted`) |
 | POST | `/demo/login` | — | *Only exists when `DEMO_MODE=true`.* Auto-logs in as the shared demo account, no credentials needed |
 | POST | `/demo/seed` | — | *Only exists when `DEMO_MODE=true`.* Appends ~29 canned logs (pre-written analysis, no Claude call) to the demo account; ~10s cooldown |
+| POST | `/demo/clear` | — | *Only exists when `DEMO_MODE=true`.* Deletes all of the demo account's logs on demand |
 
 `LOGS_CACHE_TTL_SECONDS` (default 30) controls cache TTL for read endpoints. `DEMO_MODE` (default `false`) gates the `/demo/*` routes — when off, they don't exist (404). See `DECISIONS.md` for why.
 

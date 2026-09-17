@@ -18,6 +18,7 @@ function snippet(text, max = 80) {
 export function Logs({ user }) {
   const isDemoAccount = DEMO_MODE && user?.email === DEMO_USER_EMAIL;
   const [seeding, setSeeding] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [seedError, setSeedError] = useState('');
   const [logs, setLogs] = useState([]);
   const [updatedIds, setUpdatedIds] = useState(() => new Set());
@@ -133,6 +134,20 @@ export function Logs({ user }) {
     }
   }
 
+  async function handleClearDemo() {
+    if (!window.confirm('Clear all demo logs?')) return;
+    setSeedError('');
+    setClearing(true);
+    try {
+      await api.clearDemo();
+      await loadLogs({ fresh: true });
+    } catch (err) {
+      setSeedError(`Failed to clear demo logs: ${err.message}`);
+    } finally {
+      setClearing(false);
+    }
+  }
+
   async function handleDelete(e, logId) {
     e.preventDefault();
     e.stopPropagation();
@@ -191,9 +206,14 @@ export function Logs({ user }) {
             <strong>Demo mode</strong>
             <p className="muted">Populate this dashboard with sample logs and AI analysis — no real data, no cost.</p>
           </div>
-          <button type="button" className="btn btn-primary demo-banner-btn" onClick={handleSeedDemo} disabled={seeding}>
-            {seeding ? 'Generating…' : '✨ Regenerate demo logs'}
-          </button>
+          <div className="demo-banner-actions">
+            <button type="button" className="btn btn-primary demo-banner-btn" onClick={handleSeedDemo} disabled={seeding}>
+              {seeding ? 'Generating…' : '✨ Regenerate demo logs'}
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={handleClearDemo} disabled={clearing || total === 0}>
+              {clearing ? 'Clearing…' : 'Clear demo logs'}
+            </button>
+          </div>
         </div>
       )}
       {isDemoAccount && seedError && <p className="page-error">{seedError}</p>}

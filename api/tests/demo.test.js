@@ -95,6 +95,19 @@ describe('demo mode', () => {
     expect(count).toBe(first.body.seeded + second.body.seeded);
   });
 
+  it('clear removes all demo logs on demand', async () => {
+    await request(demoApp).post('/demo/seed').expect(202);
+    const demoUser = await User.findOne({ email: 'demo@logsentinel.local' });
+    await expect(LogEntry.countDocuments({ userId: demoUser._id })).resolves.toBeGreaterThan(0);
+
+    await request(demoApp).post('/demo/clear').expect(200);
+    await expect(LogEntry.countDocuments({ userId: demoUser._id })).resolves.toBe(0);
+  });
+
+  it('404s /demo/clear when DEMO_MODE is off', async () => {
+    await request(offApp).post('/demo/clear').expect(404);
+  });
+
   it('returns 429 when the seed lock is already held', async () => {
     tryAcquireLock.mockResolvedValueOnce(false);
     const res = await request(demoApp).post('/demo/seed').expect(429);
