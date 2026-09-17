@@ -329,6 +329,26 @@ describe('logs', () => {
     expect(sorted.body.logs.map((l) => l.analysis.severity)).toEqual(['critical', 'medium', 'low']);
   });
 
+  it('severity=none matches missing severity and the literal string "none"', async () => {
+    const agent = request.agent(app);
+    const reg = await agent.post('/auth/register').send({
+      email: uniqueEmail('severity-none'),
+      password: 'password123',
+    });
+    const userId = reg.body.user.id;
+    await agent.post('/keys').send({ name: 'severity-none-key' }).expect(201);
+    const ApiKey = require('../src/models/ApiKey');
+    const keyDoc = await ApiKey.findOne({ userId });
+
+    const base = { userId, apiKeyId: keyDoc._id, loggedAt: new Date(), status: 'done', level: 'info' };
+    await LogEntry.create({ ...base, message: 'missing severity', analysis: { summary: 'x' } });
+    await LogEntry.create({ ...base, message: 'explicit none', analysis: { summary: 'x', severity: 'none' } });
+    await LogEntry.create({ ...base, message: 'has severity', analysis: { summary: 'x', severity: 'low' } });
+
+    const res = await agent.get('/logs?severity=none&fresh=1').expect(200);
+    expect(res.body.logs.map((l) => l.message).sort()).toEqual(['explicit none', 'missing severity']);
+  });
+
   it('bypasses cache when fresh=1', async () => {
     const agent = request.agent(app);
     await agent.post('/auth/register').send({ email: uniqueEmail('fresh'), password: 'password123' });

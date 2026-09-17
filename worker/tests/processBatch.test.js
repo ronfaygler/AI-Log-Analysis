@@ -121,4 +121,39 @@ describe('processBatch', () => {
     expect(updated.status).toBe('failed');
     expect(updated.errorMessage).toBe('API rate limit');
   });
+
+  it('marks an entry failed (not done) if the resulting analysis has no summary or recommendation', async () => {
+    analyzeLogBatch.mockResolvedValue({
+      incidentSummary: '',
+      overallSeverity: 'low',
+      recommendation: '',
+      logs: [{ index: 0, summary: '', severity: 'low' }],
+    });
+
+    const entry = await LogEntry.create({
+      userId: new mongoose.Types.ObjectId(),
+      apiKeyId: new mongoose.Types.ObjectId(),
+      level: 'info',
+      message: 'routine',
+      loggedAt: new Date(),
+      status: 'queued',
+    });
+
+    await processBatch(
+      [
+        {
+          type: 'analyze_log',
+          logEntryId: entry._id.toString(),
+          level: 'info',
+          message: 'routine',
+          loggedAt: entry.loggedAt.toISOString(),
+        },
+      ],
+      testConfig
+    );
+
+    const updated = await LogEntry.findById(entry._id);
+    expect(updated.status).toBe('failed');
+    expect(updated.errorMessage).toMatch(/missing summary or recommendation/i);
+  });
 });

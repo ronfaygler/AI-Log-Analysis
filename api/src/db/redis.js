@@ -68,6 +68,22 @@ async function deleteCacheKey(key) {
   await redis.del(key);
 }
 
+async function tryAcquireLock(key, ttlSeconds) {
+  const redis = getRedis();
+  const result = await redis.set(key, '1', 'EX', ttlSeconds, 'NX');
+  return result === 'OK';
+}
+
+async function getValue(key) {
+  const redis = getRedis();
+  return redis.get(key);
+}
+
+async function setValue(key, value) {
+  const redis = getRedis();
+  await redis.set(key, value);
+}
+
 module.exports = {
   connectRedis,
   getRedis,
@@ -78,4 +94,7 @@ module.exports = {
   publishLogEvent,
   invalidateUserLogCaches,
   deleteCacheKey,
+  tryAcquireLock,
+  getValue,
+  setValue,
 };

@@ -47,6 +47,12 @@ Standalone scripts, not part of the deployed stack, that talk to the public `/lo
 
 See [tools/README.md](./tools/README.md).
 
+### Public demo mode (`DEMO_MODE`, off by default)
+
+A separate, optional path for a no-registration public demo — not a replacement for the real product (real accounts, real API keys, real Claude analysis remain how the system is meant to work). Off unless `DEMO_MODE=true` (API) and `VITE_DEMO_MODE=true` (frontend) are both set; when off, `/demo/*` routes 404 and no UI entry point renders.
+
+When on: `POST /demo/login` auto-authenticates any visitor into one fixed, shared `demo@logsentinel.local` account; `POST /demo/seed` appends a hand-written set of ~29 logs (`api/src/data/demoFixtures.js`) with pre-written analysis already attached — **no Claude call, ever**, so it's free to leave publicly clickable. Seeded entries simulate `queued → processing → done` over ~15-25s (cosmetic only; the worker is never involved) for the same "watching it work" effect the real pipeline has. The demo account's logs auto-clear after 10 minutes of no one seeding, checked lazily on the next `/demo/login` rather than via a cron job. See `DECISIONS.md` for the full reasoning.
+
 ### Problems AI can highlight
 
 | Pattern | Example | Typical insight |
@@ -69,7 +75,7 @@ Batching: 100 similar failed logins → ~4 Claude calls (batch size 25) instead 
 | Queue / cache | Redis |
 | Containers | Docker, Docker Compose |
 | CI/CD | GitHub Actions |
-| Production host | Deciding — frontend on Vercel confirmed; api/worker + MongoDB/Redis hosting still TBD (was AWS Lightsail in the original plan) |
+| Production host | Deployed — frontend on Vercel, `api`/`worker` on Fly.io, MongoDB Atlas, Upstash Redis (was AWS Lightsail in the original plan). See `DEPLOYMENT.md`. |
 
 ## Architecture
 
@@ -117,7 +123,7 @@ frontend/        ──HTTP (JWT cookie)──►  api/
 | 4 | Batch AI analysis + API log read improvements (MCP removed) | ✅ |
 | 5 | React dashboard + Redis cache + MongoDB indexes | ✅ |
 | 6 | Tests (Jest + Supertest) + GitHub Actions CI | 🔄 |
-| 7 | Deploy (frontend: Vercel; api/worker/db: TBD) + README polish + demo GIF | 🔄 |
+| 7 | Deploy (frontend: Vercel; api/worker: Fly.io; MongoDB Atlas; Upstash Redis) + README polish + demo GIF | 🔄 |
 
 At the start of each session, set the active day's **Done?** to 🔄 when work begins. Mark ✅ when that day's scope is complete. Keep **Current status** in sync with the active day.
 
@@ -140,9 +146,11 @@ At the start of each session, set the active day's **Done?** to 🔄 when work b
 - CI (`.github/workflows/ci.yml`) expanded beyond api/worker tests: added `build-frontend` (`vite build`) and `check-tools` (`node --check` on the tools/ scripts) jobs, since neither had any automated coverage before.
 - Fixed several stale doc details (worker's actual default `ANTHROPIC_MODEL`, pagination undocumented in api/frontend READMEs, tools description referencing an earlier random-burst design that was simplified to `--issue-ratio`).
 
-**Next:** Day 6 — frontend still has no test suite (CI only builds it); Day 7 — decide and stand up api/worker/db hosting to pair with the Vercel frontend.
+**Day 7 (deployment):** Live at frontend on Vercel + `api`/`worker` on Fly.io + MongoDB Atlas + Upstash Redis — see `DEPLOYMENT.md`. Fixed a real production-breaking bug found during this: the auth cookie was hardcoded `sameSite: 'lax'`, which browsers drop on cross-domain requests (frontend and API are on different domains in production) — now follows `COOKIE_SECURE` (`'none'` when true). Also added `DEMO_MODE`/`VITE_DEMO_MODE` (off by default) — a public, no-registration demo path using canned/pre-written log+analysis data (zero Claude cost); see the "Public demo mode" section above and `DECISIONS.md`.
 
-_Last updated: 2026-09-14_
+**Next:** Day 6 — frontend still has no test suite (CI only builds it); Day 7 — turn `DEMO_MODE`/`VITE_DEMO_MODE` on for the deployed instance when ready to actually use the public demo.
+
+_Last updated: 2026-09-17_
 
 ## Do not
 

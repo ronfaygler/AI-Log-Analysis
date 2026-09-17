@@ -57,6 +57,7 @@ function buildListFilter(userId, query) {
           $or: [
             { 'analysis.severity': { $exists: false } },
             { 'analysis.severity': null },
+            { 'analysis.severity': 'none' },
           ],
         },
       ];

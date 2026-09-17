@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api/client';
+import { api, DEMO_MODE, DEMO_USER_EMAIL } from '../api/client';
 import { LevelBadge, SeverityBadge, StatusBadge } from '../components/Badge';
 import { useLogStream } from '../hooks/useLogStream';
 import './Logs.css';
@@ -15,7 +15,11 @@ function snippet(text, max = 80) {
   return text.length > max ? `${text.slice(0, max)}…` : text;
 }
 
-export function Logs() {
+export function Logs({ user }) {
+  const isDemoAccount = DEMO_MODE && user?.email === DEMO_USER_EMAIL;
+  const [seeding, setSeeding] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [seedError, setSeedError] = useState('');
   const [logs, setLogs] = useState([]);
   const [updatedIds, setUpdatedIds] = useState(() => new Set());
   const logsRef = useRef(logs);
@@ -117,6 +121,33 @@ export function Logs() {
     loadLogs({ fresh: true });
   }
 
+  async function handleSeedDemo() {
+    setSeedError('');
+    setSeeding(true);
+    try {
+      await api.seedDemo();
+      await loadLogs({ fresh: true });
+    } catch (err) {
+      setSeedError(err.status === 429 ? err.message : `Failed to generate demo logs: ${err.message}`);
+    } finally {
+      setTimeout(() => setSeeding(false), 10000);
+    }
+  }
+
+  async function handleClearDemo() {
+    if (!window.confirm('Clear all demo logs?')) return;
+    setSeedError('');
+    setClearing(true);
+    try {
+      await api.clearDemo();
+      await loadLogs({ fresh: true });
+    } catch (err) {
+      setSeedError(`Failed to clear demo logs: ${err.message}`);
+    } finally {
+      setClearing(false);
+    }
+  }
+
   async function handleDelete(e, logId) {
     e.preventDefault();
     e.stopPropagation();
@@ -162,10 +193,30 @@ export function Logs() {
     <div className="logs-page">
       <div className="page-header">
         <h1>Logs</h1>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => loadLogs({ fresh: true })} disabled={loading}>
-          Refresh
-        </button>
+        <div className="page-header-actions">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => loadLogs({ fresh: true })} disabled={loading}>
+            Refresh
+          </button>
+        </div>
       </div>
+
+      {isDemoAccount && (
+        <div className="demo-banner">
+          <div>
+            <strong>Demo mode</strong>
+            <p className="muted">Populate this dashboard with sample logs and AI analysis — no real data, no cost.</p>
+          </div>
+          <div className="demo-banner-actions">
+            <button type="button" className="btn btn-primary demo-banner-btn" onClick={handleSeedDemo} disabled={seeding}>
+              {seeding ? 'Generating…' : '✨ Regenerate demo logs'}
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={handleClearDemo} disabled={clearing || total === 0}>
+              {clearing ? 'Clearing…' : 'Clear demo logs'}
+            </button>
+          </div>
+        </div>
+      )}
+      {isDemoAccount && seedError && <p className="page-error">{seedError}</p>}
 
       <div className="view-tabs">
         <button
@@ -240,12 +291,14 @@ export function Logs() {
           <p className="muted">
             {viewMode === 'issues'
               ? 'Benign logs are hidden. Switch to All logs or ingest new errors.'
-              : (
-                <>
-                  Create an API key and send logs with{' '}
-                  <code className="mono">POST /logs/ingest</code>.
-                </>
-              )}
+              : isDemoAccount
+                ? 'Click "Regenerate demo logs" above to populate this dashboard.'
+                : (
+                  <>
+                    Create an API key and send logs with{' '}
+                    <code className="mono">POST /logs/ingest</code>.
+                  </>
+                )}
           </p>
         </div>
       )}

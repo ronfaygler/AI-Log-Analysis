@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../api/client';
+import { api, DEMO_MODE } from '../api/client';
 import '../components/AuthForm.css';
 
 export function Login({ onAuth }) {
@@ -9,6 +9,7 @@ export function Login({ onAuth }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -23,6 +24,35 @@ export function Login({ onAuth }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleViewDemo() {
+    setError('');
+    setDemoLoading(true);
+    try {
+      const data = await api.demoLogin();
+      onAuth(data.user);
+      navigate('/logs');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDemoLoading(false);
+    }
+  }
+
+  if (DEMO_MODE) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card">
+          <h1>LogSentinel</h1>
+          <p className="subtitle">AI-powered log analysis — try the live demo</p>
+          {error && <p className="auth-error">{error}</p>}
+          <button type="button" className="btn btn-primary" onClick={handleViewDemo} disabled={demoLoading}>
+            {demoLoading ? 'Loading demo…' : 'View live demo'}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

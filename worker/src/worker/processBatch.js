@@ -8,6 +8,10 @@ async function saveAndNotify(entry) {
   await publishLogEvent(entry.userId, entry._id);
 }
 
+function isAnalysisComplete(analysis) {
+  return Boolean(analysis?.summary && analysis?.recommendation);
+}
+
 async function processBatch(jobs, config) {
   const pairs = [];
 
@@ -43,18 +47,32 @@ async function processBatch(jobs, config) {
         analyzedAt,
       };
 
-      entry.status = 'done';
-      entry.analysis = analysis;
-      entry.errorMessage = undefined;
-      await saveAndNotify(entry);
+      if (isAnalysisComplete(analysis)) {
+        entry.status = 'done';
+        entry.analysis = analysis;
+        entry.errorMessage = undefined;
+        await saveAndNotify(entry);
 
-      await sendNotification(config, {
-        event: 'log.analyzed',
-        logEntryId: job.logEntryId,
-        level: job.level,
-        message: job.message,
-        analysis,
-      });
+        await sendNotification(config, {
+          event: 'log.analyzed',
+          logEntryId: job.logEntryId,
+          level: job.level,
+          message: job.message,
+          analysis,
+        });
+      } else {
+        entry.status = 'failed';
+        entry.errorMessage = 'Claude response missing summary or recommendation';
+        await saveAndNotify(entry);
+
+        await sendNotification(config, {
+          event: 'log.failed',
+          logEntryId: job.logEntryId,
+          level: job.level,
+          message: job.message,
+          error: entry.errorMessage,
+        }).catch((notifyErr) => console.error('Notification error:', notifyErr.message));
+      }
     }
 
     console.log(`Processed batch of ${pairs.length} logs — ${batchResult.overallSeverity}`);

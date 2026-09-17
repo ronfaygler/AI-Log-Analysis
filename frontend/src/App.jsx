@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { api } from './api/client';
+import { api, DEMO_USER_EMAIL } from './api/client';
 import { Layout } from './components/Layout';
 import { ApiKeys } from './pages/ApiKeys';
 import { LogDetail } from './pages/LogDetail';
@@ -47,7 +47,7 @@ export default function App() {
         element={
           <ProtectedRoute user={user}>
             <Layout user={user} onLogout={() => setUser(null)}>
-              <Logs />
+              <Logs user={user} />
             </Layout>
           </ProtectedRoute>
         }
@@ -66,9 +66,13 @@ export default function App() {
         path="/keys"
         element={
           <ProtectedRoute user={user}>
-            <Layout user={user} onLogout={() => setUser(null)}>
-              <ApiKeys />
-            </Layout>
+            {user?.email === DEMO_USER_EMAIL ? (
+              <Navigate to="/logs" replace />
+            ) : (
+              <Layout user={user} onLogout={() => setUser(null)}>
+                <ApiKeys />
+              </Layout>
+            )}
           </ProtectedRoute>
         }
       />
