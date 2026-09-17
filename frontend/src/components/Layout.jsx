@@ -1,8 +1,9 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { api } from '../api/client';
+import { api, DEMO_USER_EMAIL } from '../api/client';
 import './Layout.css';
 
 export function Layout({ user, children, onLogout }) {
+  const isDemoAccount = user.email === DEMO_USER_EMAIL;
   const navigate = useNavigate();
 
   async function handleLogout() {
@@ -24,9 +25,11 @@ export function Layout({ user, children, onLogout }) {
           <NavLink to="/logs" className={({ isActive }) => (isActive ? 'active' : '')}>
             Logs
           </NavLink>
-          <NavLink to="/keys" className={({ isActive }) => (isActive ? 'active' : '')}>
-            API Keys
-          </NavLink>
+          {!isDemoAccount && (
+            <NavLink to="/keys" className={({ isActive }) => (isActive ? 'active' : '')}>
+              API Keys
+            </NavLink>
+          )}
         </nav>
         <div className="header-right">
           <span className="user-email">{user.email}</span>

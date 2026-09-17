@@ -252,8 +252,16 @@ const CLUSTERS = [
 // worker batches flipping from "processing" to "done" together.
 const CHUNK_SIZES = [7, 6, ...CLUSTERS.map((c) => c.logs.length)];
 
+const DEFAULT_ROUTINE_RECOMMENDATION = 'No action needed — informational only.';
+
 function buildFixtures() {
-  const fixtures = [...ROUTINE.slice(0, 7), ...ROUTINE.slice(7)];
+  const fixtures = [...ROUTINE.slice(0, 7), ...ROUTINE.slice(7)].map((fixture) => ({
+    ...fixture,
+    analysis: {
+      recommendation: DEFAULT_ROUTINE_RECOMMENDATION,
+      ...fixture.analysis,
+    },
+  }));
 
   for (const cluster of CLUSTERS) {
     for (const log of cluster.logs) {
