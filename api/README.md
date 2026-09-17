@@ -52,8 +52,10 @@ Uses `mongodb-memory-server` and mocks Redis. No `.env` required for tests.
 | GET | `/logs/stream` | Cookie or Bearer | SSE stream of `log.updated` / `log.deleted` for the current user |
 | GET | `/logs/:id` | Cookie or Bearer | Get one log entry by ID — Redis-cached |
 | DELETE | `/logs/:id` | Cookie or Bearer | Delete a log (invalidates cache, publishes `log.deleted`) |
+| POST | `/demo/login` | — | *Only exists when `DEMO_MODE=true`.* Auto-logs in as the shared demo account, no credentials needed |
+| POST | `/demo/seed` | — | *Only exists when `DEMO_MODE=true`.* Appends ~29 canned logs (pre-written analysis, no Claude call) to the demo account; ~10s cooldown |
 
-`LOGS_CACHE_TTL_SECONDS` (default 30) controls cache TTL for read endpoints.
+`LOGS_CACHE_TTL_SECONDS` (default 30) controls cache TTL for read endpoints. `DEMO_MODE` (default `false`) gates the `/demo/*` routes — when off, they don't exist (404). See `DECISIONS.md` for why.
 
 ### Log ingest example
 

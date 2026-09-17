@@ -78,6 +78,16 @@ Use the **same** `MONGO_URI` and `REDIS_URL` for both apps — they share the da
 3. Confirm login/session works (the cross-domain cookie fix — `SameSite=None; Secure` when `COOKIE_SECURE=true` — is what makes this work; see `api/src/routes/auth.js`).
 4. Confirm the SSE live-update stream works on `/logs` across the two domains.
 
+## 6. Optional: turn on the public demo
+
+Off by default. To enable a no-registration "View live demo" flow on the deployed instance (see `CONTEXT.md`/`DECISIONS.md` for what it does):
+
+```bash
+fly secrets set --app logsentinel-api DEMO_MODE="true"
+```
+
+Then, in Vercel's Environment Variables, set `VITE_DEMO_MODE=true` and redeploy the frontend (Vercel doesn't auto-restart on env var changes — trigger a redeploy from the dashboard or push a commit). This does not touch the real registration/login/API-key flow at all — it only adds the demo entry point.
+
 ## Notes
 
 - `COOKIE_SECURE=true` in production is required for cross-domain auth to work at all (see `DECISIONS.md`) — don't deploy without it.

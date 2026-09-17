@@ -33,7 +33,11 @@ See [CONTEXT.md](./CONTEXT.md) for product vision, example logs, and dashboard p
 
 ## Deployment
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) — frontend on Vercel, `api`/`worker` on Fly.io, MongoDB Atlas, Upstash Redis.
+Live: frontend on Vercel, `api`/`worker` on Fly.io, MongoDB Atlas, Upstash Redis. See [DEPLOYMENT.md](./DEPLOYMENT.md) for setup steps.
+
+### Public demo mode (off by default)
+
+Set `DEMO_MODE=true` (API) and `VITE_DEMO_MODE=true` (frontend) to enable a no-registration public demo — any visitor gets auto-logged into a shared demo account and can click "Regenerate demo logs" to populate it with pre-written (zero-Claude-cost) sample data. Off by default; the real product (real accounts, API keys, live Claude analysis) works the same either way. See `DECISIONS.md` and `CONTEXT.md` for details.
 
 ## Tools
 
@@ -63,4 +67,5 @@ CI (`.github/workflows/ci.yml`, on push/PR to `main`) runs `api` + `worker` test
 - **Tests:** API + worker unit tests + CI (Day 6 plan not closed).
 - **Day 5:** React dashboard. See [frontend/README.md](./frontend/README.md).
 - **Day 5 follow-ups:** `tools/` (log-shipper, demo-log-generator), `GET /logs` pagination, worker `max_tokens` fix, CI now builds the frontend and checks `tools/`. See [CONTEXT.md](./CONTEXT.md) for details.
-- **Next:** Day 6 — frontend still has no test suite; Day 7 — finish deciding/standing up hosting (frontend on Vercel; api/worker/db TBD).
+- **Day 7:** Deployed (Vercel + Fly.io + Atlas + Upstash); fixed a cross-domain auth cookie bug found during deploy; added off-by-default `DEMO_MODE` public demo.
+- **Next:** Day 6 — frontend still has no test suite; Day 7 — turn on `DEMO_MODE` for the deployed instance when ready.

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../api/client';
+import { api, DEMO_MODE } from '../api/client';
 import '../components/AuthForm.css';
 
 export function Login({ onAuth }) {
@@ -9,6 +9,7 @@ export function Login({ onAuth }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -22,6 +23,20 @@ export function Login({ onAuth }) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleViewDemo() {
+    setError('');
+    setDemoLoading(true);
+    try {
+      const data = await api.demoLogin();
+      onAuth(data.user);
+      navigate('/logs');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDemoLoading(false);
     }
   }
 
@@ -59,6 +74,19 @@ export function Login({ onAuth }) {
         <p className="auth-footer">
           No account? <Link to="/register">Register</Link>
         </p>
+        {DEMO_MODE && (
+          <>
+            <hr className="auth-divider" />
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={handleViewDemo}
+              disabled={demoLoading}
+            >
+              {demoLoading ? 'Loading demo…' : 'View live demo'}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

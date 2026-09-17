@@ -18,6 +18,7 @@ function loadEnv() {
     cookieSecure: process.env.COOKIE_SECURE === 'true',
     corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     logsCacheTtlSeconds: Number(process.env.LOGS_CACHE_TTL_SECONDS) || 30,
+    demoMode: process.env.DEMO_MODE === 'true',
   };
 }
 

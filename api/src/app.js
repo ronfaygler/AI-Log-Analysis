@@ -6,6 +6,7 @@ const healthRoutes = require('./routes/health');
 const authRoutes = require('./routes/auth');
 const keysRoutes = require('./routes/keys');
 const logsRoutes = require('./routes/logs');
+const demoRoutes = require('./routes/demo');
 
 function createApp(config) {
   const app = express();
@@ -24,6 +25,9 @@ function createApp(config) {
   app.use(authRoutes);
   app.use(keysRoutes);
   app.use(logsRoutes);
+  if (config.demoMode) {
+    app.use(demoRoutes);
+  }
 
   app.use(errorHandler);
   return app;

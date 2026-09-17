@@ -72,3 +72,4 @@ router.get('/auth/me', requireAuth, (req, res) => {
 });
 
 module.exports = router;
+module.exports.setAuthCookie = setAuthCookie;

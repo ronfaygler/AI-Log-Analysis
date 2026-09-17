@@ -1,5 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
+export const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
+export const DEMO_USER_EMAIL = 'demo@logsentinel.local';
+
 async function request(path, options = {}) {
   const res = await fetch(`${API_URL}${path}`, {
     credentials: 'include',
@@ -45,4 +48,6 @@ export const api = {
   },
   getLog: (id) => request(`/logs/${id}`),
   deleteLog: (id) => request(`/logs/${id}`, { method: 'DELETE' }),
+  demoLogin: () => request('/demo/login', { method: 'POST' }),
+  seedDemo: () => request('/demo/seed', { method: 'POST' }),
 };

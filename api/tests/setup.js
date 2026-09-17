@@ -11,6 +11,9 @@ jest.mock('../src/db/redis', () => ({
   invalidateUserLogCaches: jest.fn().mockResolvedValue(undefined),
   deleteCacheKey: jest.fn().mockResolvedValue(undefined),
   logEventsChannel: jest.fn((userId) => `logsentinel:events:${userId}`),
+  tryAcquireLock: jest.fn().mockResolvedValue(true),
+  getValue: jest.fn().mockResolvedValue(null),
+  setValue: jest.fn().mockResolvedValue(undefined),
 }));
 
 let mongoServer;

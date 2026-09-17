@@ -47,7 +47,7 @@ export default function App() {
         element={
           <ProtectedRoute user={user}>
             <Layout user={user} onLogout={() => setUser(null)}>
-              <Logs />
+              <Logs user={user} />
             </Layout>
           </ProtectedRoute>
         }
