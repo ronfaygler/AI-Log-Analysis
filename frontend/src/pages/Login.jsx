@@ -40,6 +40,21 @@ export function Login({ onAuth }) {
     }
   }
 
+  if (DEMO_MODE) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card">
+          <h1>LogSentinel</h1>
+          <p className="subtitle">AI-powered log analysis — try the live demo</p>
+          {error && <p className="auth-error">{error}</p>}
+          <button type="button" className="btn btn-primary" onClick={handleViewDemo} disabled={demoLoading}>
+            {demoLoading ? 'Loading demo…' : 'View live demo'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="auth-page">
       <div className="auth-card">
@@ -74,19 +89,6 @@ export function Login({ onAuth }) {
         <p className="auth-footer">
           No account? <Link to="/register">Register</Link>
         </p>
-        {DEMO_MODE && (
-          <>
-            <hr className="auth-divider" />
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={handleViewDemo}
-              disabled={demoLoading}
-            >
-              {demoLoading ? 'Loading demo…' : 'View live demo'}
-            </button>
-          </>
-        )}
       </div>
     </div>
   );

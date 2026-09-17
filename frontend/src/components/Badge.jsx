@@ -24,7 +24,9 @@ export function StatusBadge({ status }) {
 }
 
 export function SeverityBadge({ severity }) {
-  if (!severity) return <span className="badge muted">—</span>;
+  if (!severity || severity.toLowerCase() === 'none') {
+    return <span className="badge muted">—</span>;
+  }
   const key = severity.toLowerCase();
   return <span className={`badge ${SEVERITY_CLASS[key] || 'sev-medium'}`}>{severity}</span>;
 }

@@ -15,6 +15,35 @@
   gap: 0.5rem;
 }
 
+.demo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+}
+
+.demo-banner strong {
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.demo-banner p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.demo-banner-btn {
+  white-space: nowrap;
+  font-size: 1rem;
+  padding: 0.7rem 1.4rem;
+}
+
 .view-tabs {
   display: flex;
   gap: 0.25rem;

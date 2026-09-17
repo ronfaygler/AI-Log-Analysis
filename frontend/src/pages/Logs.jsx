@@ -179,16 +179,23 @@ export function Logs({ user }) {
       <div className="page-header">
         <h1>Logs</h1>
         <div className="page-header-actions">
-          {isDemoAccount && (
-            <button type="button" className="btn btn-ghost btn-sm" onClick={handleSeedDemo} disabled={seeding}>
-              {seeding ? 'Generating…' : 'Regenerate demo logs'}
-            </button>
-          )}
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => loadLogs({ fresh: true })} disabled={loading}>
             Refresh
           </button>
         </div>
       </div>
+
+      {isDemoAccount && (
+        <div className="demo-banner">
+          <div>
+            <strong>Demo mode</strong>
+            <p className="muted">Populate this dashboard with sample logs and AI analysis — no real data, no cost.</p>
+          </div>
+          <button type="button" className="btn btn-primary demo-banner-btn" onClick={handleSeedDemo} disabled={seeding}>
+            {seeding ? 'Generating…' : '✨ Regenerate demo logs'}
+          </button>
+        </div>
+      )}
       {isDemoAccount && seedError && <p className="page-error">{seedError}</p>}
 
       <div className="view-tabs">
