@@ -32,7 +32,7 @@ export function Layout({ user, children, onLogout }) {
           )}
         </nav>
         <div className="header-right">
-          <span className="user-email">{user.email}</span>
+          <span className="user-email">{isDemoAccount ? 'Demo Account' : user.email}</span>
           <button type="button" className="btn btn-ghost" onClick={handleLogout}>
             Log out
           </button>
