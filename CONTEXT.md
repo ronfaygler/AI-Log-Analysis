@@ -85,11 +85,11 @@ Two backend services plus a frontend. **No monolith** — each service has its o
 apps (X-API-Key) ──POST /logs/ingest──►  api/ ◄──read/write──► MongoDB
 frontend/        ──HTTP (JWT cookie)──►  api/
                          │
-                         │ LPUSH jobs
+                         │ LPUSH jobs + PUBLISH notify
                          ▼
                       Redis queue
                          │
-                         │ BRPOP + batch buffer
+                         │ SUBSCRIBE (event-driven) + batch buffer
                          ▼
                       worker/  ──batched──► Claude
                            └──► MongoDB (analysis on each LogEntry)
@@ -132,7 +132,7 @@ At the start of each session, set the active day's **Done?** to 🔄 when work b
 <!-- Updated each working session -->
 
 **Day 1–2:** Scaffold + API (`api/README.md`).  
-**Day 3:** Worker — Redis `BRPOP`, Claude analysis, webhook notifications (`worker/README.md`).  
+**Day 3:** Worker — Redis job queue, Claude analysis, webhook notifications (`worker/README.md`).  
 **Day 4:** Removed MCP service. Worker batch buffer (`BATCH_MAX_LOGS`, `BATCH_WINDOW_MS`). API: Bearer auth, `GET /logs/:id`, log filters (`level`, `status`, `source`, `q`).
 
 **Tests (early, not Day 6):** Jest for `api/` (20) and `worker/` (11) — **31 total**; mocked Claude/Redis. GitHub Actions CI runs both. Day 6 stays open for frontend tests and any remaining coverage.

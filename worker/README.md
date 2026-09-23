@@ -1,6 +1,6 @@
 # LogSentinel Worker
 
-Consumes log analysis jobs from Redis (`BRPOP`), batches them, calls Claude once per batch, updates MongoDB, and sends notifications.
+Consumes log analysis jobs from Redis (event-driven pub/sub, not polling), batches them, calls Claude once per batch, updates MongoDB, and sends notifications.
 
 ## Environment
 
@@ -37,14 +37,16 @@ npm run dev
 npm test
 ```
 
-Mocks Claude (`analyzeLogBatch`), Redis (`popJob`), and optional webhook `fetch`. Tests `processBatch`, `batchBuffer`, `consumeOnce`, and `sendNotification`.
+Mocks Claude (`analyzeLogBatch`), Redis (`popJob`), and optional webhook `fetch`. Tests `processBatch`, `batchBuffer`, `drainQueue`, and `sendNotification`.
 
 ## Flow
 
-1. API `LPUSH`es one job per log after `POST /logs/ingest`
-2. Worker `BRPOP`es jobs (1s timeout) into an in-memory buffer
+1. API `LPUSH`es one job per log after `POST /logs/ingest`, then `PUBLISH`es a lightweight wake-up signal on `<queue>:notify`
+2. Worker holds one idle Redis connection `SUBSCRIBE`d to that channel — zero Redis commands while there's nothing to do. On each notify (and once on startup, to catch up on anything queued while it was down) it drains the list with non-blocking `RPOP`s into an in-memory buffer
 3. When buffer reaches `BATCH_MAX_LOGS` or `BATCH_WINDOW_MS`, one Claude call analyzes all logs in the batch
 4. Each `LogEntry` gets `status: done` and `analysis`; optional webhook per log
+
+Jobs stay durable in the Redis list (not just the pub/sub signal) — if the worker is down or restarting when a job is pushed, it's still there to drain on the next startup or notify, it's just not picked up instantly.
 
 ## Job payload (from API)
 

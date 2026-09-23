@@ -16,9 +16,19 @@ async function connectRedis(url) {
   return client;
 }
 
+function jobsNotifyChannel(queueName) {
+  return `${queueName}:notify`;
+}
+
+// LPUSH keeps the job durable in the list (survives a worker crash/restart);
+// the PUBLISH is just a cheap wake-up signal so the worker can stay
+// event-driven (subscribed, no polling) instead of repeatedly hitting Redis
+// to check for work. The worker drains the list on startup too, in case a
+// notify was missed while it was down.
 async function publishJob(queueName, payload) {
   const redis = getRedis();
   await redis.lpush(queueName, JSON.stringify(payload));
+  await redis.publish(jobsNotifyChannel(queueName), '1');
 }
 
 async function getCacheJson(key) {
@@ -88,6 +98,7 @@ module.exports = {
   connectRedis,
   getRedis,
   publishJob,
+  jobsNotifyChannel,
   getCacheJson,
   setCacheJson,
   logEventsChannel,

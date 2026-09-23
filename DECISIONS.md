@@ -31,6 +31,13 @@ _(To be filled as we build.)_
 - **Alternatives considered:** BullMQ, Redis Streams.
 - **Date:** 2026-05-20
 
+### Worker switched from BRPOP polling to event-driven pub/sub
+- **What:** The worker no longer blocks on `BRPOP` in a loop. The API still `LPUSH`es jobs to `logsentinel:jobs` (durable), but now also `PUBLISH`es a lightweight wake-up signal on `logsentinel:jobs:notify`. The worker holds one idle connection `SUBSCRIBE`d to that channel and only issues Redis commands (a drain of non-blocking `RPOP`s) when notified, plus once on startup to catch up on anything queued while it was down.
+- **Why:** `BRPOP` re-issues a command every time its timeout elapses even with zero traffic — at a 1s timeout that's ~2.6M billed Redis commands/month on Upstash for an idle worker. With real traffic at roughly 1 client/day, that's almost entirely wasted spend. Pub/sub-triggered draining costs near-zero while idle and still picks up jobs instantly.
+- **Alternatives considered:** Just increasing/backing off the `BRPOP` timeout (cheaper than 1s, but still non-zero idle cost and doesn't scale to true zero); Redis keyspace notifications (`notify-keyspace-events`) to trigger the drain instead of an app-level `PUBLISH` (equivalent effect, but depends on Upstash allowing that server config, which wasn't worth the risk to depend on); plain pub/sub with no underlying list (simplest, but a job published while the worker is crashed/restarting would be silently lost — unacceptable since `api`/`worker` can go down independently, see the "one machine" decision above).
+- **Trade-off accepted:** slightly more moving parts (a notify channel plus the list) than plain BRPOP or plain pub/sub alone, in exchange for keeping both durability and near-zero idle cost.
+- **Date:** 2026-09-23
+
 ### Webhook notifications (optional)
 - **What:** Worker POSTs JSON to `NOTIFY_WEBHOOK_URL` on success/failure; always logs to stdout if unset.
 - **Why:** Simple integration point (Slack, PagerDuty, custom) without email/SMS complexity for MVP.
