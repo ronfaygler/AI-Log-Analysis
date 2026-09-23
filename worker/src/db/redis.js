@@ -17,17 +17,27 @@ async function connectRedis(url) {
 }
 
 /**
- * Blocking pop from the job queue (FIFO with API LPUSH).
- * @returns {Promise<object|null>} Parsed job payload or null on timeout
+ * Non-blocking pop from the job queue (FIFO with API LPUSH -> worker RPOP).
+ * Call in a loop to drain; returns null once the list is empty.
+ * @returns {Promise<object|null>} Parsed job payload or null
  */
-async function popJob(queueName, timeoutSeconds = 0) {
+async function popJob(queueName) {
   const redis = getRedis();
-  const result = await redis.brpop(queueName, timeoutSeconds);
-  if (!result) {
+  const payload = await redis.rpop(queueName);
+  if (!payload) {
     return null;
   }
-  const [, payload] = result;
   return JSON.parse(payload);
+}
+
+function jobsNotifyChannel(queueName) {
+  return `${queueName}:notify`;
+}
+
+// A dedicated connection for SUBSCRIBE, since a subscribed ioredis connection
+// can't also issue regular commands (RPOP etc. still go through the main client).
+function createJobsSubscriber(url) {
+  return new Redis(url);
 }
 
 function logEventsChannel(userId) {
@@ -43,4 +53,12 @@ async function publishLogEvent(userId, logEntryId, event = 'log.updated') {
   );
 }
 
-module.exports = { connectRedis, getRedis, popJob, publishLogEvent, logEventsChannel };
+module.exports = {
+  connectRedis,
+  getRedis,
+  popJob,
+  jobsNotifyChannel,
+  createJobsSubscriber,
+  publishLogEvent,
+  logEventsChannel,
+};

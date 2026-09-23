@@ -1,5 +1,7 @@
 jest.mock('../src/db/redis', () => ({
   popJob: jest.fn(),
+  jobsNotifyChannel: jest.fn((queueName) => `${queueName}:notify`),
+  createJobsSubscriber: jest.fn(),
 }));
 
 jest.mock('../src/worker/batchBuffer', () => ({
@@ -11,7 +13,7 @@ jest.mock('../src/worker/batchBuffer', () => ({
 
 const { popJob } = require('../src/db/redis');
 const batchBuffer = require('../src/worker/batchBuffer');
-const { consumeOnce } = require('../src/worker/consumer');
+const { drainQueue } = require('../src/worker/consumer');
 
 const testConfig = {
   redisQueueName: 'logsentinel:test:jobs',
@@ -19,7 +21,7 @@ const testConfig = {
   batchWindowMs: 10000,
 };
 
-describe('consumeOnce', () => {
+describe('drainQueue', () => {
   beforeEach(() => {
     popJob.mockReset();
     batchBuffer.add.mockClear();
@@ -29,34 +31,55 @@ describe('consumeOnce', () => {
     batchBuffer.shouldFlush.mockReturnValue(false);
   });
 
-  it('adds job to buffer and calls maybeFlush', async () => {
-    const job = { type: 'analyze_log', logEntryId: '507f1f77bcf86cd799439011' };
-    popJob.mockResolvedValue(job);
-
-    await consumeOnce(testConfig);
-
-    expect(popJob).toHaveBeenCalledWith(testConfig.redisQueueName, 1);
-    expect(batchBuffer.add).toHaveBeenCalledWith(job);
-    expect(batchBuffer.maybeFlush).toHaveBeenCalledWith(testConfig);
-  });
-
-  it('flushes immediately when shouldFlush is true', async () => {
-    const job = { type: 'analyze_log', logEntryId: 'abc' };
-    popJob.mockResolvedValue(job);
-    batchBuffer.shouldFlush.mockReturnValue(true);
-
-    await consumeOnce(testConfig);
-
-    expect(batchBuffer.flush).toHaveBeenCalledWith(testConfig);
-    expect(batchBuffer.maybeFlush).not.toHaveBeenCalled();
-  });
-
-  it('maybeFlush on empty queue timeout', async () => {
+  it('does nothing when the queue is empty', async () => {
     popJob.mockResolvedValue(null);
 
-    await consumeOnce(testConfig);
+    await drainQueue(testConfig);
 
+    expect(popJob).toHaveBeenCalledWith(testConfig.redisQueueName);
     expect(batchBuffer.add).not.toHaveBeenCalled();
-    expect(batchBuffer.maybeFlush).toHaveBeenCalledWith(testConfig);
+  });
+
+  it('drains every job in the list until empty', async () => {
+    const jobA = { type: 'analyze_log', logEntryId: 'a' };
+    const jobB = { type: 'analyze_log', logEntryId: 'b' };
+    popJob
+      .mockResolvedValueOnce(jobA)
+      .mockResolvedValueOnce(jobB)
+      .mockResolvedValueOnce(null);
+
+    await drainQueue(testConfig);
+
+    expect(batchBuffer.add).toHaveBeenCalledWith(jobA);
+    expect(batchBuffer.add).toHaveBeenCalledWith(jobB);
+    expect(popJob).toHaveBeenCalledTimes(3);
+  });
+
+  it('flushes as soon as shouldFlush is true, mid-drain', async () => {
+    const jobA = { type: 'analyze_log', logEntryId: 'a' };
+    popJob.mockResolvedValueOnce(jobA).mockResolvedValueOnce(null);
+    batchBuffer.shouldFlush.mockReturnValue(true);
+
+    await drainQueue(testConfig);
+
+    expect(batchBuffer.flush).toHaveBeenCalledWith(testConfig);
+  });
+
+  it('re-drains if a notify arrives while already draining', async () => {
+    const jobA = { type: 'analyze_log', logEntryId: 'a' };
+    let callCount = 0;
+    popJob.mockImplementation(async () => {
+      callCount += 1;
+      if (callCount === 1) {
+        // Simulate a notify firing mid-drain, requesting a redrain.
+        drainQueue(testConfig);
+        return jobA;
+      }
+      return null;
+    });
+
+    await drainQueue(testConfig);
+
+    expect(batchBuffer.add).toHaveBeenCalledWith(jobA);
   });
 });
