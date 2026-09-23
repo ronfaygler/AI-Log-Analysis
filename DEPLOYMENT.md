@@ -79,6 +79,7 @@ Then, in Vercel's Environment Variables, set `VITE_DEMO_MODE=true` and redeploy 
 
 ## Notes
 
+- **CI/CD:** pushing to `main` (after tests pass) auto-deploys `api`/`worker` to Fly.io via `.github/workflows/ci.yml`'s `deploy` job, using a `FLY_API_TOKEN` repo secret. The frontend already auto-deploys via Vercel's own GitHub integration — no action needed there. Manual `fly deploy --app logsentinel-api` still works if you need to redeploy without a code change (e.g. after `fly secrets set`, though that already restarts the app on its own).
 - The worker is event-driven, not polling: it holds one idle Redis connection subscribed to a notify channel and only issues commands (a drain of `RPOP`s) when the API publishes a wake-up signal after `LPUSH`ing a job, plus once on startup to catch up. This keeps Upstash usage close to zero for a low-traffic deployment while still picking up new jobs instantly. Jobs themselves stay durable in the Redis list even if the worker is briefly down (see `worker/README.md` for the full flow).
 - `COOKIE_SECURE=true` in production is required for cross-domain auth to work at all (see `DECISIONS.md`) — don't deploy without it.
 - Re-deploy after a code change with `fly deploy --app logsentinel-api` from the **repo root**.

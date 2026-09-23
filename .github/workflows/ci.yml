@@ -53,3 +53,15 @@ jobs:
         run: |
           node --check tools/log-shipper.js
           node --check tools/demo-log-generator.js
+
+  deploy:
+    needs: [test, build-frontend, check-tools]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy api + worker to Fly.io
+        run: flyctl deploy --remote-only --app logsentinel-api
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
