@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, DEMO_MODE, DEMO_USER_EMAIL } from '../api/client';
 import { LevelBadge, SeverityBadge, StatusBadge } from '../components/Badge';
+import { HowItWorks } from '../components/HowItWorks';
+import { SourceFilter } from '../components/SourceFilter';
 import { useLogStream } from '../hooks/useLogStream';
 import './Logs.css';
 
@@ -29,7 +31,7 @@ export function Logs({ user }) {
   const [updatedIds, setUpdatedIds] = useState(() => new Set());
   const logsRef = useRef(logs);
   logsRef.current = logs;
-  const [limit, setLimit] = useState(50);
+  const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -39,7 +41,7 @@ export function Logs({ user }) {
   const [filters, setFilters] = useState({
     level: '',
     status: '',
-    source: '',
+    source: [],
     q: '',
     severity: '',
     sort: 'time',
@@ -56,7 +58,7 @@ export function Logs({ user }) {
         if (viewMode === 'issues') params.issues = true;
         if (filters.level) params.level = filters.level;
         if (filters.status) params.status = filters.status;
-        if (filters.source) params.source = filters.source;
+        if (filters.source.length) params.source = filters.source.join(',');
         if (filters.q) params.q = filters.q;
         if (filters.severity) params.severity = filters.severity;
         if (filters.sort && filters.sort !== 'time') params.sort = filters.sort;
@@ -205,6 +207,8 @@ export function Logs({ user }) {
         </div>
       </div>
 
+      <HowItWorks isDemoAccount={isDemoAccount} />
+
       {isDemoAccount && (
         <div className="demo-banner">
           <div>
@@ -268,12 +272,9 @@ export function Logs({ user }) {
           <option value="time">Newest</option>
           <option value="severity">Severity (highest first)</option>
         </select>
-        <input
-          type="text"
-          name="source"
-          placeholder="Source"
+        <SourceFilter
           value={filters.source}
-          onChange={handleFilterChange}
+          onChange={(source) => setFilters((prev) => ({ ...prev, source }))}
         />
         <input
           type="search"

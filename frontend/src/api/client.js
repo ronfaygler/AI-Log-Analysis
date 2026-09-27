@@ -46,6 +46,7 @@ export const api = {
     const query = qs.toString();
     return request(`/logs${query ? `?${query}` : ''}`);
   },
+  listSources: () => request('/logs/sources'),
   getLog: (id) => request(`/logs/${id}`),
   deleteLog: (id) => request(`/logs/${id}`, { method: 'DELETE' }),
   demoLogin: () => request('/demo/login', { method: 'POST' }),

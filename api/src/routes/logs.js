@@ -135,6 +135,19 @@ router.get('/logs', requireAuth, async (req, res, next) => {
   }
 });
 
+router.get('/logs/sources', requireAuth, async (req, res, next) => {
+  try {
+    const sources = await LogEntry.distinct('source', {
+      userId: req.user.id,
+      source: { $nin: [null, ''] },
+    });
+    sources.sort((a, b) => a.localeCompare(b));
+    res.json({ sources });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.use(createLogsStreamRouter());
 
 router.delete('/logs/:id', requireAuth, async (req, res, next) => {

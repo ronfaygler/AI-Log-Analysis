@@ -221,6 +221,43 @@ describe('logs', () => {
 
     const bySource = await agent.get('/logs?source=checkout&limit=1').expect(200);
     expect(bySource.body.logs).toHaveLength(1);
+
+    await request(app)
+      .post('/logs/ingest')
+      .set('X-API-Key', apiKey)
+      .send({ level: 'warn', message: 'invoice late', source: 'billing' });
+
+    const oneSource = await agent.get('/logs?source=billing').expect(200);
+    expect(oneSource.body.logs).toHaveLength(1);
+
+    const multiSource = await agent.get('/logs?source=checkout,billing').expect(200);
+    expect(multiSource.body.logs).toHaveLength(3);
+  });
+
+  it('lists distinct sources for the current user', async () => {
+    const agent = request.agent(app);
+    const apiKey = await registerAndGetApiKey(agent);
+
+    for (const source of ['worker', 'api-gateway', 'worker', undefined]) {
+      await request(app)
+        .post('/logs/ingest')
+        .set('X-API-Key', apiKey)
+        .send({ level: 'info', message: 'hello', source });
+    }
+
+    const otherAgent = request.agent(app);
+    const otherKey = await registerAndGetApiKey(otherAgent);
+    await request(app)
+      .post('/logs/ingest')
+      .set('X-API-Key', otherKey)
+      .send({ level: 'info', message: 'other', source: 'someone-else' });
+
+    const res = await agent.get('/logs/sources').expect(200);
+    expect(res.body.sources).toEqual(['api-gateway', 'worker']);
+  });
+
+  it('requires auth to list sources', async () => {
+    await request(app).get('/logs/sources').expect(401);
   });
 
   it('caches log list responses in Redis', async () => {

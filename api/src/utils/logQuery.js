@@ -38,7 +38,15 @@ function buildListFilter(userId, query) {
     filter.status = query.status;
   }
   if (query.source) {
-    filter.source = query.source;
+    const sources = String(query.source)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (sources.length === 1) {
+      filter.source = sources[0];
+    } else if (sources.length > 1) {
+      filter.source = { $in: sources };
+    }
   }
   if (query.q) {
     filter.message = { $regex: query.q, $options: 'i' };
