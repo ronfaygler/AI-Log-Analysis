@@ -183,7 +183,7 @@ const CLUSTERS = [
       {
         level: 'warn',
         message: 'Disk usage at 91%',
-        source: 'worker-1',
+        source: 'worker',
         metadata: { host: 'worker-1' },
         summary: 'Disk usage approaching capacity',
         severity: 'medium',
@@ -191,7 +191,7 @@ const CLUSTERS = [
       {
         level: 'warn',
         message: 'Disk usage at 96%',
-        source: 'worker-1',
+        source: 'worker',
         metadata: { host: 'worker-1' },
         summary: 'Disk usage critical',
         severity: 'high',
@@ -199,7 +199,7 @@ const CLUSTERS = [
       {
         level: 'warn',
         message: 'Memory usage critical',
-        source: 'worker-1',
+        source: 'worker',
         metadata: { host: 'worker-1' },
         summary: 'Memory pressure rising alongside disk usage',
         severity: 'high',
@@ -207,7 +207,7 @@ const CLUSTERS = [
       {
         level: 'fatal',
         message: 'Out of memory: killed process',
-        source: 'worker-1',
+        source: 'worker',
         metadata: { host: 'worker-1' },
         summary: 'OOM killer terminated a process',
         severity: 'critical',
